@@ -2,6 +2,9 @@ const LABELS = {
   POTENCIAL: 'Potencial',
   ACTIVO: 'Activo',
   INACTIVO: 'Inactivo',
+  OPERATIVA: 'Operativa',
+  INACTIVA: 'Inactiva',
+  BAJA: 'Baja',
 };
 
 export function EstadoBadge({ estado }) {

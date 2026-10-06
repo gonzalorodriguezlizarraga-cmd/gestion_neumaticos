@@ -10,7 +10,10 @@ use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
+use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\OrganizacionController;
+use App\Controllers\TipoUnidadController;
+use App\Controllers\UnidadController;
 use App\Exceptions\NotFoundException;
 use App\Middleware\AuthenticationMiddleware;
 use App\Middleware\AuthorizationMiddleware;
@@ -21,7 +24,10 @@ use App\Repositories\ClienteContactoRepository;
 use App\Repositories\ClienteRepository;
 use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
+use App\Repositories\ConfiguracionUnidadRepository;
 use App\Repositories\OrganizacionRepository;
+use App\Repositories\TipoUnidadRepository;
+use App\Repositories\UnidadRepository;
 use App\Repositories\RolRepository;
 use App\Repositories\UsuarioRepository;
 use App\Routes\ApiRoutes;
@@ -31,13 +37,19 @@ use App\Services\ClienteContactoService;
 use App\Services\ClientePolicy;
 use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
+use App\Services\ConfiguracionUnidadService;
 use App\Services\OrganizacionService;
+use App\Services\TipoUnidadService;
+use App\Services\UnidadService;
 use App\Support\Jwt;
 use App\Support\Transaction;
 use App\Validators\ClienteValidator;
 use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
+use App\Validators\ConfiguracionUnidadValidator;
 use App\Validators\OrganizacionValidator;
+use App\Validators\TipoUnidadValidator;
+use App\Validators\UnidadValidator;
 use App\Validators\ResponsableValidator;
 use Throwable;
 
@@ -110,6 +122,19 @@ final class Kernel
             'FLOTA',
             true,
         );
+        $tipoRepository = new TipoUnidadRepository($pdo);
+        $configuracionRepository = new ConfiguracionUnidadRepository($pdo);
+        $tipoService = new TipoUnidadService($tipoRepository, $auditoria, $authorization, new TipoUnidadValidator(), $transaction);
+        $configuracionService = new ConfiguracionUnidadService($configuracionRepository, $auditoria, $authorization, new ConfiguracionUnidadValidator(), $transaction);
+        $unidadService = new UnidadService(
+            new UnidadRepository($pdo),
+            $tipoRepository,
+            $configuracionRepository,
+            $auditoria,
+            $authorization,
+            new UnidadValidator(),
+            $transaction,
+        );
         $router = new Router();
         ApiRoutes::register(
             $router,
@@ -119,6 +144,9 @@ final class Kernel
             new ClienteResponsableController($responsableService),
             new OrganizacionController($sedes),
             new OrganizacionController($flotas),
+            new TipoUnidadController($tipoService),
+            new ConfiguracionUnidadController($configuracionService),
+            new UnidadController($unidadService),
         );
 
         return new self(

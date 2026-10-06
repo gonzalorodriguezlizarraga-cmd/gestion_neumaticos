@@ -14,3 +14,15 @@ export function canOperateCliente(user) {
 export function canManageResponsables(user) {
   return isAdmin(user);
 }
+
+export function canManageUnidades(user) {
+  return canOperateCliente(user);
+}
+
+export function canManageConfiguraciones(user) {
+  return canOperateCliente(user);
+}
+
+export function canManageTipos(user) {
+  return isAdmin(user);
+}

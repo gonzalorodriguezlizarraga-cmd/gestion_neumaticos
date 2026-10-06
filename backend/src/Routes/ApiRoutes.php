@@ -8,7 +8,10 @@ use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
+use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\OrganizacionController;
+use App\Controllers\TipoUnidadController;
+use App\Controllers\UnidadController;
 use App\Http\ApiResponse;
 use App\Http\Request;
 use App\Http\Router;
@@ -24,6 +27,9 @@ final class ApiRoutes
         ClienteResponsableController $responsables,
         OrganizacionController $sedes,
         OrganizacionController $flotas,
+        TipoUnidadController $tipos,
+        ConfiguracionUnidadController $configuraciones,
+        UnidadController $unidades,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -44,6 +50,26 @@ final class ApiRoutes
         self::responsables($router, $responsables, $lectura, $admin);
         self::organizacion($router, 'sedes', $sedes, $lectura, $operacion);
         self::organizacion($router, 'flotas', $flotas, $lectura, $operacion);
+
+        $router->get('/api/v1/tipos-unidad', static fn (Request $request): ApiResponse => $tipos->index($request), true, $lectura);
+        $router->post('/api/v1/tipos-unidad', static fn (Request $request): ApiResponse => $tipos->store($request), true, $admin);
+        $router->get('/api/v1/tipos-unidad/{id}', static fn (Request $request): ApiResponse => $tipos->show($request), true, $lectura);
+        $router->put('/api/v1/tipos-unidad/{id}', static fn (Request $request): ApiResponse => $tipos->update($request), true, $admin);
+        $router->patch('/api/v1/tipos-unidad/{id}/estado', static fn (Request $request): ApiResponse => $tipos->estado($request), true, $admin);
+
+        $router->get('/api/v1/configuraciones-unidad', static fn (Request $request): ApiResponse => $configuraciones->index($request), true, $lectura);
+        $router->post('/api/v1/configuraciones-unidad', static fn (Request $request): ApiResponse => $configuraciones->store($request), true, $operacion);
+        $router->get('/api/v1/configuraciones-unidad/{id}', static fn (Request $request): ApiResponse => $configuraciones->show($request), true, $lectura);
+        $router->put('/api/v1/configuraciones-unidad/{id}', static fn (Request $request): ApiResponse => $configuraciones->update($request), true, $operacion);
+        $router->post('/api/v1/configuraciones-unidad/{id}/duplicar', static fn (Request $request): ApiResponse => $configuraciones->duplicar($request), true, $operacion);
+        $router->patch('/api/v1/configuraciones-unidad/{id}/estado', static fn (Request $request): ApiResponse => $configuraciones->estado($request), true, $operacion);
+
+        $router->get('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->index($request), true, $lectura);
+        $router->post('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->store($request), true, $operacion);
+        $router->get('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->show($request), true, $lectura);
+        $router->put('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->update($request), true, $operacion);
+        $router->patch('/api/v1/unidades/{id}/estado', static fn (Request $request): ApiResponse => $unidades->estado($request), true, $operacion);
+        $router->delete('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->destroy($request), true, $operacion);
     }
 
     /** @param list<string> $lectura @param list<string> $escritura */

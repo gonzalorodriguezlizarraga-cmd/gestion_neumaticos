@@ -8,6 +8,13 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { ClienteDetallePage } from './pages/clientes/ClienteDetallePage';
 import { ClienteFormPage } from './pages/clientes/ClienteFormPage';
 import { ClientesPage } from './pages/clientes/ClientesPage';
+import { ConfiguracionDetallePage } from './pages/configuraciones/ConfiguracionDetallePage';
+import { ConfiguracionFormPage } from './pages/configuraciones/ConfiguracionFormPage';
+import { ConfiguracionesPage } from './pages/configuraciones/ConfiguracionesPage';
+import { TiposUnidadPage } from './pages/configuraciones/TiposUnidadPage';
+import { UnidadDetallePage } from './pages/unidades/UnidadDetallePage';
+import { UnidadFormPage } from './pages/unidades/UnidadFormPage';
+import { UnidadesPage } from './pages/unidades/UnidadesPage';
 
 export function App() {
   return (
@@ -21,6 +28,15 @@ export function App() {
           <Route path="/clientes/nuevo" element={<ClienteFormPage />} />
           <Route path="/clientes/:id" element={<ClienteDetallePage />} />
           <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
+          <Route path="/unidades" element={<UnidadesPage />} />
+          <Route path="/unidades/nueva" element={<UnidadFormPage />} />
+          <Route path="/unidades/:id" element={<UnidadDetallePage />} />
+          <Route path="/unidades/:id/editar" element={<UnidadFormPage />} />
+          <Route path="/configuraciones-unidad" element={<ConfiguracionesPage />} />
+          <Route path="/configuraciones-unidad/nueva" element={<ConfiguracionFormPage />} />
+          <Route path="/configuraciones-unidad/:id" element={<ConfiguracionDetallePage />} />
+          <Route path="/configuraciones-unidad/:id/editar" element={<ConfiguracionFormPage />} />
+          <Route path="/tipos-unidad" element={<TiposUnidadPage />} />
         </Route>
       </Route>
       <Route path="/403" element={<ForbiddenPage />} />
