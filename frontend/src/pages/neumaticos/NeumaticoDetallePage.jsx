@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { deleteNeumatico, getNeumatico, listHistorialEstados, listVidas } from '../../api/neumaticos';
+import { descartarNeumatico, getDescarte, listMantenimientosNeumatico, listMotivosDescarte } from '../../api/mantenimientos';
 import { listInspeccionesNeumatico } from '../../api/inspecciones';
+import { aFecha, ahoraLocal, costoTexto, lectura, mensaje } from '../mantenimientos/texto';
 import { listMontajesNeumatico, listMovimientosNeumatico } from '../../api/operaciones';
 import { InspeccionesTabla } from '../inspecciones/InspeccionesTabla';
 import { EstadoBadge } from '../../components/EstadoBadge';
@@ -22,10 +24,15 @@ export function NeumaticoDetallePage() {
   const [montajes, setMontajes] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
   const [inspecciones, setInspecciones] = useState([]);
+  const [mantenimientos, setMantenimientos] = useState([]);
+  const [descarte, setDescarte] = useState(null);
+  const [motivos, setMotivos] = useState([]);
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState('resumen');
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [descartando, setDescartando] = useState(false);
+  const [descarteForm, setDescarteForm] = useState({ motivo_descarte_id: '', fecha_descarte: ahoraLocal(), profundidad_final_mm: '', observacion: '' });
 
   useEffect(() => {
     let cancelled = false;
@@ -39,12 +46,15 @@ export function NeumaticoDetallePage() {
       }
       setNeumatico(result.payload.data);
       setError('');
-      const [hist, life, mounts, moves, inspections] = await Promise.all([
+      const [hist, life, mounts, moves, inspections, works, scrap, reasons] = await Promise.all([
         listHistorialEstados(id),
         listVidas(id),
         listMontajesNeumatico(id),
         listMovimientosNeumatico(id),
         listInspeccionesNeumatico(id, { limit: 20, sort: 'fecha_inspeccion', order: 'desc' }),
+        listMantenimientosNeumatico(id, { limit: 20, sort: 'fecha_solicitud', order: 'desc' }),
+        getDescarte(id),
+        listMotivosDescarte(),
       ]);
       if (cancelled) return;
       setHistorial(hist.ok ? hist.payload?.data ?? [] : []);
@@ -52,6 +62,9 @@ export function NeumaticoDetallePage() {
       setMontajes(mounts.ok ? mounts.payload?.data ?? [] : []);
       setMovimientos(moves.ok ? moves.payload?.data ?? [] : []);
       setInspecciones(inspections.ok ? inspections.payload?.data ?? [] : []);
+      setMantenimientos(works.ok ? works.payload?.data ?? [] : []);
+      setDescarte(scrap.ok ? scrap.payload?.data ?? null : null);
+      setMotivos(reasons.ok ? reasons.payload?.data ?? [] : []);
     }
     load();
     return () => { cancelled = true; };
@@ -61,6 +74,10 @@ export function NeumaticoDetallePage() {
   if (!neumatico) return <p>Cargando neumático…</p>;
 
   const disponible = neumatico.estado.codigo === 'DISPONIBLE';
+  const descartado = neumatico.estado.codigo === 'DESCARTADO';
+  const procesoActivo = mantenimientos.some((item) => ['SOLICITADO', 'ENVIADO', 'EN_PROCESO'].includes(item.estado.codigo))
+    || montajes.some((item) => item.activo);
+  const puedeDescartar = operate && disponible && !procesoActivo;
 
   return (
     <section>
@@ -75,11 +92,49 @@ export function NeumaticoDetallePage() {
         {operate ? (
           <div className="actions">
             <Link className="button button-primary" to={`/neumaticos/${id}/editar`}>Editar</Link>
-            {disponible ? <button type="button" className="button button-quiet" onClick={() => setConfirming(true)}>Eliminar</button> : null}
+            {puedeDescartar ? <button type="button" className="button button-quiet" onClick={() => { setDescartando(true); setConfirming(false); }}>Descartar</button> : null}
+            {disponible ? <button type="button" className="button button-quiet" onClick={() => { setConfirming(true); setDescartando(false); }}>Eliminar</button> : null}
           </div>
         ) : null}
       </div>
+      {descartado ? (
+        <article className="panel lock-note">
+          <strong>Estado final: Descartado</strong>
+          <p>Fecha {lectura(descarte?.fecha_descarte)}. Motivo {descarte?.motivo?.nombre || '—'}.</p>
+          {descarte?.observacion ? <p>{descarte.observacion}</p> : null}
+        </article>
+      ) : null}
       {error ? <p className="form-error" role="alert">{error}</p> : null}
+      {descartando ? (
+        <form className="confirm-box stack-form" onSubmit={async (event) => {
+          event.preventDefault();
+          const body = {
+            motivo_descarte_id: Number(descarteForm.motivo_descarte_id),
+            fecha_descarte: aFecha(descarteForm.fecha_descarte),
+          };
+          if (descarteForm.profundidad_final_mm !== '') body.profundidad_final_mm = descarteForm.profundidad_final_mm;
+          if (descarteForm.observacion.trim()) body.observacion = descarteForm.observacion.trim();
+          const result = await descartarNeumatico(id, body);
+          if (!result.ok) { setError(mensaje(result)); return; }
+          setDescartando(false);
+          setVersion((current) => current + 1);
+        }}>
+          <p>El descarte finaliza el ciclo operativo del neumático y no permitirá nuevos montajes.</p>
+          <label>Motivo
+            <select required value={descarteForm.motivo_descarte_id} onChange={(event) => setDescarteForm({ ...descarteForm, motivo_descarte_id: event.target.value })}>
+              <option value="">Seleccione</option>
+              {motivos.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+            </select>
+          </label>
+          <label>Fecha<input type="datetime-local" required value={descarteForm.fecha_descarte} onChange={(event) => setDescarteForm({ ...descarteForm, fecha_descarte: event.target.value })} /></label>
+          <label>Profundidad final (mm)<input inputMode="decimal" value={descarteForm.profundidad_final_mm} onChange={(event) => setDescarteForm({ ...descarteForm, profundidad_final_mm: event.target.value })} /></label>
+          <label>Observación<textarea maxLength={2000} value={descarteForm.observacion} onChange={(event) => setDescarteForm({ ...descarteForm, observacion: event.target.value })} /></label>
+          <div className="actions">
+            <button type="submit" className="button button-primary">Confirmar descarte</button>
+            <button type="button" className="button button-quiet" onClick={() => setDescartando(false)}>Cancelar</button>
+          </div>
+        </form>
+      ) : null}
       {confirming ? (
         <div className="confirm-box">
           <p>El neumático dejará de aparecer en el listado. Su código, historial y vidas se conservan.</p>
@@ -98,6 +153,7 @@ export function NeumaticoDetallePage() {
         <button type="button" className={tab === 'montajes' ? 'tab active' : 'tab'} onClick={() => setTab('montajes')}>Montajes</button>
         <button type="button" className={tab === 'movimientos' ? 'tab active' : 'tab'} onClick={() => setTab('movimientos')}>Movimientos</button>
         <button type="button" className={tab === 'inspecciones' ? 'tab active' : 'tab'} onClick={() => setTab('inspecciones')}>Inspecciones</button>
+        <button type="button" className={tab === 'mantenimiento' ? 'tab active' : 'tab'} onClick={() => setTab('mantenimiento')}>Mantenimiento</button>
       </div>
       {operate && disponible ? <MontajeNeumatico neumatico={neumatico} onDone={() => setVersion((current) => current + 1)} /> : null}
       {tab === 'resumen' ? (
@@ -170,6 +226,25 @@ export function NeumaticoDetallePage() {
       ) : null}
       {tab === 'movimientos' ? <MovimientosTabla rows={movimientos} conNeumatico={false} /> : null}
       {tab === 'inspecciones' ? <InspeccionesTabla rows={inspecciones} vacio="Este neumático todavía no tiene inspecciones." /> : null}
+      {tab === 'mantenimiento' ? (
+        <table className="data-table">
+          <thead>
+            <tr><th>Tipo</th><th>Estado</th><th>Fecha</th><th>Costo</th><th>Tercero</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            {mantenimientos.length === 0 ? <tr><td colSpan={6}>Este neumático todavía no tiene mantenimientos.</td></tr> : mantenimientos.map((item) => (
+              <tr key={item.id}>
+                <td data-label="Tipo">{item.tipo.nombre}</td>
+                <td data-label="Estado"><EstadoBadge estado={item.estado.codigo} /></td>
+                <td data-label="Fecha">{lectura(item.fecha_solicitud)}</td>
+                <td data-label="Costo">{costoTexto(item.costo, item.moneda)}</td>
+                <td data-label="Tercero">{item.tercero_nombre || '—'}</td>
+                <td data-label="Acciones"><Link to={`/mantenimientos/${item.id}`}>Abrir</Link></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
     </section>
   );
 }

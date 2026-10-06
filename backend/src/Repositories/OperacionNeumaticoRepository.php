@@ -264,11 +264,11 @@ final class OperacionNeumaticoRepository
             'INSERT INTO movimientos_neumatico (
                 cliente_id, neumatico_id, tipo_movimiento_id, fecha,
                 unidad_origen_id, posicion_origen_id, unidad_destino_id, posicion_destino_id,
-                km_unidad, horometro_unidad, montaje_id, grupo_operacion, observacion, usuario_id, anulado
+                km_unidad, horometro_unidad, montaje_id, mantenimiento_id, grupo_operacion, observacion, usuario_id, anulado
              ) VALUES (
                 :cliente_id, :neumatico_id, :tipo_movimiento_id, :fecha,
                 :unidad_origen_id, :posicion_origen_id, :unidad_destino_id, :posicion_destino_id,
-                :km_unidad, :horometro_unidad, :montaje_id, :grupo_operacion, :observacion, :usuario_id, 0
+                :km_unidad, :horometro_unidad, :montaje_id, :mantenimiento_id, :grupo_operacion, :observacion, :usuario_id, 0
              )'
         );
         $statement->bindValue('cliente_id', $data['cliente_id'], PDO::PARAM_INT);
@@ -281,8 +281,9 @@ final class OperacionNeumaticoRepository
         $this->nulo($statement, 'posicion_destino_id', $data['posicion_destino_id'], true);
         $this->nulo($statement, 'km_unidad', $data['km_unidad'], true);
         $this->nulo($statement, 'horometro_unidad', $data['horometro_unidad'], false);
-        $statement->bindValue('montaje_id', $data['montaje_id'], PDO::PARAM_INT);
-        $statement->bindValue('grupo_operacion', $data['grupo_operacion']);
+        $this->nulo($statement, 'montaje_id', $data['montaje_id'], true);
+        $this->nulo($statement, 'mantenimiento_id', $data['mantenimiento_id'] ?? null, true);
+        $this->nulo($statement, 'grupo_operacion', $data['grupo_operacion'], false);
         $this->nulo($statement, 'observacion', $data['observacion'], false);
         $statement->bindValue('usuario_id', $data['usuario_id'], PDO::PARAM_INT);
         $statement->execute();

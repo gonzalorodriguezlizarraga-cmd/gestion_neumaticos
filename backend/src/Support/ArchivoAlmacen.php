@@ -69,7 +69,9 @@ final class ArchivoAlmacen
 
     private function resolver(string $ruta): string
     {
-        if (preg_match('#^archivos/[1-9][0-9]*/(?:INSPECCION|INSPECCION_DETALLE)/[1-9][0-9]*/[a-f0-9]{32}\.(?:jpg|png|webp)$#', $ruta) !== 1) {
+        $foto = '#^archivos/[1-9][0-9]*/(?:INSPECCION|INSPECCION_DETALLE)/[1-9][0-9]*/[a-f0-9]{32}\.(?:jpg|png|webp)$#';
+        $mantenimiento = '#^archivos/[1-9][0-9]*/MANTENIMIENTO/[1-9][0-9]*/[a-f0-9]{32}\.(?:jpg|png|webp|pdf)$#';
+        if (preg_match($foto, $ruta) !== 1 && preg_match($mantenimiento, $ruta) !== 1) {
             throw new ValidationException('Los datos enviados no son válidos.', [
                 'archivo' => ['La ruta del archivo no es válida.'],
             ]);

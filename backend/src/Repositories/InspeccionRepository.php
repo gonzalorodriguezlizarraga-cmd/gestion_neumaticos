@@ -553,13 +553,18 @@ final class InspeccionRepository
                 cliente_id, entidad_tipo, entidad_id, tipo_archivo, nombre_original, nombre_archivo,
                 ruta, mime_type, tamano_bytes, checksum_sha256, usuario_id
              ) VALUES (
-                :cliente_id, :entidad_tipo, :entidad_id, \'FOTO\', :nombre_original, :nombre_archivo,
+                :cliente_id, :entidad_tipo, :entidad_id, :tipo_archivo, :nombre_original, :nombre_archivo,
                 :ruta, :mime_type, :tamano_bytes, :checksum_sha256, :usuario_id
              )'
         );
         $statement->bindValue('cliente_id', $datos['cliente_id'], PDO::PARAM_INT);
         $statement->bindValue('entidad_tipo', $datos['entidad_tipo']);
         $statement->bindValue('entidad_id', $datos['entidad_id'], PDO::PARAM_INT);
+        $tipo = $datos['tipo_archivo'] ?? 'FOTO';
+        if (!in_array($tipo, ['FOTO', 'DOCUMENTO'], true)) {
+            $tipo = 'FOTO';
+        }
+        $statement->bindValue('tipo_archivo', $tipo);
         $statement->bindValue('nombre_original', $datos['nombre_original']);
         $statement->bindValue('nombre_archivo', $datos['nombre_archivo']);
         $statement->bindValue('ruta', $datos['ruta']);

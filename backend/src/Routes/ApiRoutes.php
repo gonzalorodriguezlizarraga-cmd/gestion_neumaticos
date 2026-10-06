@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Routes;
 
+use App\Controllers\ArchivoController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
@@ -11,6 +12,7 @@ use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\EstadoNeumaticoController;
 use App\Controllers\InspeccionController;
+use App\Controllers\MantenimientoController;
 use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
@@ -44,6 +46,8 @@ final class ApiRoutes
         NeumaticoController $neumaticos,
         OperacionNeumaticoController $operaciones,
         InspeccionController $inspecciones,
+        MantenimientoController $mantenimientos,
+        ArchivoController $archivos,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -130,8 +134,22 @@ final class ApiRoutes
         $router->post('/api/v1/inspecciones/{id}/archivos', static fn (Request $request): ApiResponse => $inspecciones->storeArchivo($request), true, $inspeccion);
         $router->get('/api/v1/inspecciones/{id}', static fn (Request $request): ApiResponse => $inspecciones->show($request), true, $lectura);
         $router->put('/api/v1/inspecciones/{id}', static fn (Request $request): ApiResponse => $inspecciones->update($request), true, $inspeccion);
-        $router->get('/api/v1/archivos/{id}/download', static fn (Request $request): ApiResponse => $inspecciones->download($request), true, $lectura);
-        $router->delete('/api/v1/archivos/{id}', static fn (Request $request): ApiResponse => $inspecciones->destroyArchivo($request), true, $inspeccion);
+        $router->get('/api/v1/archivos/{id}/download', static fn (Request $request): ApiResponse => $archivos->download($request), true, $lectura);
+        $router->delete('/api/v1/archivos/{id}', static fn (Request $request): ApiResponse => $archivos->destroy($request), true, $inspeccion);
+        $router->get('/api/v1/tipos-mantenimiento', static fn (Request $request): ApiResponse => $mantenimientos->tipos($request), true, $lectura);
+        $router->get('/api/v1/estados-mantenimiento', static fn (Request $request): ApiResponse => $mantenimientos->estados($request), true, $lectura);
+        $router->get('/api/v1/motivos-descarte', static fn (Request $request): ApiResponse => $mantenimientos->motivos($request), true, $lectura);
+        $router->get('/api/v1/mantenimientos', static fn (Request $request): ApiResponse => $mantenimientos->index($request), true, $lectura);
+        $router->post('/api/v1/mantenimientos', static fn (Request $request): ApiResponse => $mantenimientos->store($request), true, $operacion);
+        $router->post('/api/v1/mantenimientos/{id}/enviar', static fn (Request $request): ApiResponse => $mantenimientos->enviar($request), true, $operacion);
+        $router->post('/api/v1/mantenimientos/{id}/iniciar', static fn (Request $request): ApiResponse => $mantenimientos->iniciar($request), true, $operacion);
+        $router->post('/api/v1/mantenimientos/{id}/finalizar', static fn (Request $request): ApiResponse => $mantenimientos->finalizar($request), true, $operacion);
+        $router->post('/api/v1/mantenimientos/{id}/cancelar', static fn (Request $request): ApiResponse => $mantenimientos->cancelar($request), true, $operacion);
+        $router->post('/api/v1/mantenimientos/{id}/archivos', static fn (Request $request): ApiResponse => $mantenimientos->storeArchivo($request), true, $operacion);
+        $router->get('/api/v1/mantenimientos/{id}', static fn (Request $request): ApiResponse => $mantenimientos->show($request), true, $lectura);
+        $router->post('/api/v1/neumaticos/{id}/descartar', static fn (Request $request): ApiResponse => $mantenimientos->descartar($request), true, $operacion);
+        $router->get('/api/v1/neumaticos/{id}/descarte', static fn (Request $request): ApiResponse => $mantenimientos->descarte($request), true, $lectura);
+        $router->get('/api/v1/neumaticos/{id}/mantenimientos', static fn (Request $request): ApiResponse => $mantenimientos->deNeumatico($request), true, $lectura);
 
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->deNeumatico($request), true, $lectura);

@@ -19,6 +19,9 @@ import { NeumaticosPage } from './pages/neumaticos/NeumaticosPage';
 import { InspeccionDetallePage } from './pages/inspecciones/InspeccionDetallePage';
 import { InspeccionNuevaPage } from './pages/inspecciones/InspeccionNuevaPage';
 import { InspeccionesPage } from './pages/inspecciones/InspeccionesPage';
+import { MantenimientoDetallePage } from './pages/mantenimientos/MantenimientoDetallePage';
+import { MantenimientoNuevoPage } from './pages/mantenimientos/MantenimientoNuevoPage';
+import { MantenimientosPage } from './pages/mantenimientos/MantenimientosPage';
 import { UnidadDetallePage } from './pages/unidades/UnidadDetallePage';
 import { UnidadFormPage } from './pages/unidades/UnidadFormPage';
 import { UnidadesPage } from './pages/unidades/UnidadesPage';
@@ -42,6 +45,9 @@ export function App() {
           <Route path="/inspecciones" element={<InspeccionesPage />} />
           <Route path="/inspecciones/nueva" element={<InspeccionNuevaPage />} />
           <Route path="/inspecciones/:id" element={<InspeccionDetallePage />} />
+          <Route path="/mantenimientos" element={<MantenimientosPage />} />
+          <Route path="/mantenimientos/nuevo" element={<MantenimientoNuevoPage />} />
+          <Route path="/mantenimientos/:id" element={<MantenimientoDetallePage />} />
           <Route path="/neumaticos" element={<NeumaticosPage />} />
           <Route path="/neumaticos/nuevo" element={<NeumaticoFormPage />} />
           <Route path="/neumaticos/catalogo" element={<CatalogoNeumaticosPage />} />
