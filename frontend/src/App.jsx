@@ -19,6 +19,10 @@ import { NeumaticosPage } from './pages/neumaticos/NeumaticosPage';
 import { InspeccionDetallePage } from './pages/inspecciones/InspeccionDetallePage';
 import { InspeccionNuevaPage } from './pages/inspecciones/InspeccionNuevaPage';
 import { InspeccionesPage } from './pages/inspecciones/InspeccionesPage';
+import { AlertaDetallePage } from './pages/alertas/AlertaDetallePage';
+import { AlertaNuevaPage } from './pages/alertas/AlertaNuevaPage';
+import { AlertasPage } from './pages/alertas/AlertasPage';
+import { IndicadoresPage } from './pages/indicadores/IndicadoresPage';
 import { MantenimientoDetallePage } from './pages/mantenimientos/MantenimientoDetallePage';
 import { MantenimientoNuevoPage } from './pages/mantenimientos/MantenimientoNuevoPage';
 import { MantenimientosPage } from './pages/mantenimientos/MantenimientosPage';
@@ -45,6 +49,10 @@ export function App() {
           <Route path="/inspecciones" element={<InspeccionesPage />} />
           <Route path="/inspecciones/nueva" element={<InspeccionNuevaPage />} />
           <Route path="/inspecciones/:id" element={<InspeccionDetallePage />} />
+          <Route path="/alertas" element={<AlertasPage />} />
+          <Route path="/alertas/nueva" element={<AlertaNuevaPage />} />
+          <Route path="/alertas/:id" element={<AlertaDetallePage />} />
+          <Route path="/indicadores" element={<IndicadoresPage />} />
           <Route path="/mantenimientos" element={<MantenimientosPage />} />
           <Route path="/mantenimientos/nuevo" element={<MantenimientoNuevoPage />} />
           <Route path="/mantenimientos/:id" element={<MantenimientoDetallePage />} />

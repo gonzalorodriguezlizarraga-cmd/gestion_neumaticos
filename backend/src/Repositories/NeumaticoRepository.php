@@ -30,13 +30,47 @@ final class NeumaticoRepository
                     c.nombre_comercial, c.razon_social,
                     ma.nombre AS marca_nombre, mo.nombre AS modelo_nombre,
                     me.descripcion AS medida_descripcion,
-                    e.codigo AS estado_codigo, e.nombre AS estado_nombre
+                    e.codigo AS estado_codigo, e.nombre AS estado_nombre,
+                    IFNULL(alerta_agg.alertas_activas, 0) AS alertas_activas,
+                    CASE
+                        WHEN IFNULL(alerta_agg.alertas_criticas, 0) > 0 THEN \'CRITICA\'
+                        WHEN IFNULL(alerta_agg.alertas_activas, 0) > 0 THEN \'ATENCION\'
+                        ELSE \'NORMAL\'
+                    END AS criticidad,
+                    (
+                        SELECT CASE
+                            WHEN d.profundidad_interior_mm IS NULL AND d.profundidad_centro_mm IS NULL AND d.profundidad_exterior_mm IS NULL THEN NULL
+                            ELSE LEAST(
+                                IFNULL(d.profundidad_interior_mm, 9999.99),
+                                IFNULL(d.profundidad_centro_mm, 9999.99),
+                                IFNULL(d.profundidad_exterior_mm, 9999.99)
+                            )
+                        END
+                        FROM inspeccion_detalles d
+                        INNER JOIN inspecciones i ON i.id = d.inspeccion_id
+                        INNER JOIN neumatico_vidas v ON v.neumatico_id = n.id AND v.fecha_fin IS NULL
+                        WHERE d.neumatico_id = n.id
+                          AND i.estado = \'FINALIZADA\'
+                          AND i.fecha_inspeccion >= v.fecha_inicio
+                          AND v.numero_vida = n.vida_actual
+                        ORDER BY i.fecha_inspeccion DESC, i.id DESC
+                        LIMIT 1
+                    ) AS profundidad_actual_mm
              FROM neumaticos n
              INNER JOIN clientes c ON c.id = n.cliente_id
              INNER JOIN modelos_neumatico mo ON mo.id = n.modelo_id
              INNER JOIN marcas_neumatico ma ON ma.id = mo.marca_id
              INNER JOIN medidas_neumatico me ON me.id = n.medida_id
              INNER JOIN estados_neumatico e ON e.id = n.estado_id
+             LEFT JOIN (
+                SELECT a.neumatico_id,
+                       SUM(ea.es_final = 0) AS alertas_activas,
+                       SUM(ea.es_final = 0 AND a.nivel = \'CRITICA\') AS alertas_criticas
+                FROM alertas a
+                INNER JOIN estados_alerta ea ON ea.id = a.estado_id
+                WHERE a.neumatico_id IS NOT NULL
+                GROUP BY a.neumatico_id
+             ) alerta_agg ON alerta_agg.neumatico_id = n.id
              WHERE ' . $where . '
              ORDER BY ' . $criteria->sortExpression . ' ' . $criteria->direction . ', n.id ASC
              LIMIT ' . $criteria->limit . ' OFFSET ' . $criteria->offset
@@ -58,6 +92,9 @@ final class NeumaticoRepository
                 'vida_actual' => (int) $row['vida_actual'],
                 'profundidad_inicial_mm' => $row['profundidad_inicial_mm'],
                 'profundidad_minima_mm' => $row['profundidad_minima_mm'],
+                'profundidad_actual_mm' => $row['profundidad_actual_mm'],
+                'alertas_activas' => (int) $row['alertas_activas'],
+                'criticidad' => $row['criticidad'],
             ];
         }
 

@@ -6,6 +6,7 @@ namespace App\Http;
 
 use App\Config\Config;
 use App\Config\Database;
+use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
@@ -13,6 +14,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\EstadoNeumaticoController;
+use App\Controllers\IndicadorController;
 use App\Controllers\InspeccionController;
 use App\Controllers\MantenimientoController;
 use App\Controllers\MarcaNeumaticoController;
@@ -28,6 +30,7 @@ use App\Middleware\AuthenticationMiddleware;
 use App\Middleware\AuthorizationMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Middleware\ErrorHandler;
+use App\Repositories\AlertaRepository;
 use App\Repositories\AuditoriaRepository;
 use App\Repositories\ClienteContactoRepository;
 use App\Repositories\ClienteRepository;
@@ -35,6 +38,7 @@ use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
 use App\Repositories\ConfiguracionUnidadRepository;
 use App\Repositories\EstadoNeumaticoRepository;
+use App\Repositories\IndicadorRepository;
 use App\Repositories\InspeccionRepository;
 use App\Repositories\MantenimientoRepository;
 use App\Repositories\MarcaNeumaticoRepository;
@@ -48,6 +52,7 @@ use App\Repositories\UnidadRepository;
 use App\Repositories\RolRepository;
 use App\Repositories\UsuarioRepository;
 use App\Routes\ApiRoutes;
+use App\Services\AlertaService;
 use App\Services\AuthService;
 use App\Services\AuthorizationService;
 use App\Services\ClienteContactoService;
@@ -56,6 +61,7 @@ use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
 use App\Services\ConfiguracionUnidadService;
 use App\Services\EstadoNeumaticoService;
+use App\Services\IndicadorService;
 use App\Services\InspeccionService;
 use App\Services\MantenimientoService;
 use App\Services\MarcaNeumaticoService;
@@ -69,6 +75,7 @@ use App\Services\UnidadService;
 use App\Support\ArchivoAlmacen;
 use App\Support\Jwt;
 use App\Support\Transaction;
+use App\Validators\AlertaValidator;
 use App\Validators\ClienteValidator;
 use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
@@ -216,6 +223,14 @@ final class Kernel
             $almacen,
             $config->int('ARCHIVO_MAX_BYTES', 5242880),
         );
+        $alertaService = new AlertaService(
+            new AlertaRepository($pdo),
+            $auditoria,
+            $authorization,
+            new AlertaValidator(),
+            $transaction,
+        );
+        $indicadorService = new IndicadorService(new IndicadorRepository($pdo), $authorization);
         $router = new Router();
         ApiRoutes::register(
             $router,
@@ -237,6 +252,8 @@ final class Kernel
             new InspeccionController($inspeccionService),
             new MantenimientoController($mantenimientoService),
             new ArchivoController($inspeccionService, $mantenimientoService),
+            new AlertaController($alertaService),
+            new IndicadorController($indicadorService),
         );
 
         return new self(

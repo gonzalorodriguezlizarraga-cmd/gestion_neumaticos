@@ -154,11 +154,11 @@ export function NeumaticosPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Código</th><th>Serie</th><th>Cliente</th><th>Marca / Modelo</th><th>Medida</th><th>Estado</th><th>Vida</th><th>Profundidad</th><th>Acciones</th>
+              <th>Código</th><th>Serie</th><th>Cliente</th><th>Marca / Modelo</th><th>Medida</th><th>Estado</th><th>Criticidad</th><th>Vida</th><th>Profundidad</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? <tr><td colSpan={9}>No hay neumáticos para este criterio.</td></tr> : rows.map((row) => (
+            {rows.length === 0 ? <tr><td colSpan={10}>No hay neumáticos para este criterio.</td></tr> : rows.map((row) => (
               <tr key={row.id}>
                 <td data-label="Código">{row.codigo}</td>
                 <td data-label="Serie">{row.numero_serie || '—'}</td>
@@ -166,8 +166,9 @@ export function NeumaticosPage() {
                 <td data-label="Marca / Modelo">{row.marca} / {row.modelo}</td>
                 <td data-label="Medida">{row.medida}</td>
                 <td data-label="Estado"><EstadoBadge estado={row.estado_codigo} /></td>
+                <td data-label="Criticidad"><EstadoBadge estado={row.criticidad || 'NORMAL'} /></td>
                 <td data-label="Vida">Vida {row.vida_actual}</td>
-                <td data-label="Profundidad">{row.profundidad_inicial_mm ?? '—'} / {row.profundidad_minima_mm} mm</td>
+                <td data-label="Profundidad">{row.profundidad_actual_mm ?? 'No disponible'} / {row.profundidad_minima_mm} mm</td>
                 <td data-label="Acciones"><Link to={`/neumaticos/${row.id}`}>Ver ficha</Link></td>
               </tr>
             ))}

@@ -21,6 +21,12 @@ const LABELS = {
   NORMAL: 'Normal',
   ATENCION: 'Atención',
   CRITICO: 'Crítico',
+  INFORMATIVA: 'Informativa',
+  CRITICA: 'Crítica',
+  ABIERTA: 'Abierta',
+  EN_ATENCION: 'En atención',
+  ATENDIDA: 'Atendida',
+  DESCARTADA: 'Descartada',
 };
 
 export function EstadoBadge({ estado }) {

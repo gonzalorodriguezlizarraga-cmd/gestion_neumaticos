@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { canManageNeumaticos } from '../utils/access';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
@@ -22,6 +23,8 @@ export function AppLayout() {
           <NavLink to="/neumaticos">Neumáticos</NavLink>
           <NavLink to="/inspecciones">Inspecciones</NavLink>
           <NavLink to="/mantenimientos">Mantenimiento</NavLink>
+          <NavLink to="/alertas">Alertas</NavLink>
+          {canManageNeumaticos(user) ? <NavLink to="/indicadores">Indicadores</NavLink> : null}
           <NavLink to="/configuraciones-unidad">Configuraciones</NavLink>
         </nav>
         <div className="topbar-user">

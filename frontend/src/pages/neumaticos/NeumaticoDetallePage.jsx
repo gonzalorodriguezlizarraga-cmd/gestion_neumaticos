@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { deleteNeumatico, getNeumatico, listHistorialEstados, listVidas } from '../../api/neumaticos';
+import { indicadoresNeumatico } from '../../api/alertas';
+import { costosTexto, medida } from '../alertas/texto';
 import { descartarNeumatico, getDescarte, listMantenimientosNeumatico, listMotivosDescarte } from '../../api/mantenimientos';
 import { listInspeccionesNeumatico } from '../../api/inspecciones';
 import { aFecha, ahoraLocal, costoTexto, lectura, mensaje } from '../mantenimientos/texto';
@@ -25,6 +27,7 @@ export function NeumaticoDetallePage() {
   const [movimientos, setMovimientos] = useState([]);
   const [inspecciones, setInspecciones] = useState([]);
   const [mantenimientos, setMantenimientos] = useState([]);
+  const [indicadores, setIndicadores] = useState(null);
   const [descarte, setDescarte] = useState(null);
   const [motivos, setMotivos] = useState([]);
   const [version, setVersion] = useState(0);
@@ -46,7 +49,7 @@ export function NeumaticoDetallePage() {
       }
       setNeumatico(result.payload.data);
       setError('');
-      const [hist, life, mounts, moves, inspections, works, scrap, reasons] = await Promise.all([
+      const [hist, life, mounts, moves, inspections, works, scrap, reasons, metrics] = await Promise.all([
         listHistorialEstados(id),
         listVidas(id),
         listMontajesNeumatico(id),
@@ -55,6 +58,7 @@ export function NeumaticoDetallePage() {
         listMantenimientosNeumatico(id, { limit: 20, sort: 'fecha_solicitud', order: 'desc' }),
         getDescarte(id),
         listMotivosDescarte(),
+        indicadoresNeumatico(id),
       ]);
       if (cancelled) return;
       setHistorial(hist.ok ? hist.payload?.data ?? [] : []);
@@ -65,6 +69,7 @@ export function NeumaticoDetallePage() {
       setMantenimientos(works.ok ? works.payload?.data ?? [] : []);
       setDescarte(scrap.ok ? scrap.payload?.data ?? null : null);
       setMotivos(reasons.ok ? reasons.payload?.data ?? [] : []);
+      setIndicadores(metrics.ok ? metrics.payload?.data ?? null : null);
     }
     load();
     return () => { cancelled = true; };
@@ -154,6 +159,7 @@ export function NeumaticoDetallePage() {
         <button type="button" className={tab === 'movimientos' ? 'tab active' : 'tab'} onClick={() => setTab('movimientos')}>Movimientos</button>
         <button type="button" className={tab === 'inspecciones' ? 'tab active' : 'tab'} onClick={() => setTab('inspecciones')}>Inspecciones</button>
         <button type="button" className={tab === 'mantenimiento' ? 'tab active' : 'tab'} onClick={() => setTab('mantenimiento')}>Mantenimiento</button>
+        <button type="button" className={tab === 'indicadores' ? 'tab active' : 'tab'} onClick={() => setTab('indicadores')}>Indicadores</button>
       </div>
       {operate && disponible ? <MontajeNeumatico neumatico={neumatico} onDone={() => setVersion((current) => current + 1)} /> : null}
       {tab === 'resumen' ? (
@@ -226,6 +232,32 @@ export function NeumaticoDetallePage() {
       ) : null}
       {tab === 'movimientos' ? <MovimientosTabla rows={movimientos} conNeumatico={false} /> : null}
       {tab === 'inspecciones' ? <InspeccionesTabla rows={inspecciones} vacio="Este neumático todavía no tiene inspecciones." /> : null}
+      {tab === 'indicadores' && indicadores ? (
+        <article className="panel">
+          <div className="summary-grid">
+            <p><strong>Estado</strong><span><EstadoBadge estado={indicadores.estado.codigo} /></span></p>
+            <p><strong>Criticidad</strong><span><EstadoBadge estado={indicadores.criticidad} /></span></p>
+            <p><strong>Vida actual</strong><span>Vida {indicadores.vida_actual}</span></p>
+            <p><strong>Reencauches</strong><span>{indicadores.cantidad_reencauches}</span></p>
+            <p><strong>Profundidad actual</strong><span>{medida(indicadores.profundidad_actual_mm, 'mm')}</span></p>
+            <p><strong>Profundidad mínima</strong><span>{medida(indicadores.profundidad_minima_mm, 'mm')}</span></p>
+            <p><strong>Margen</strong><span>{medida(indicadores.margen_profundidad_mm, 'mm')}</span></p>
+            <p><strong>Desgaste de la vida</strong><span>{medida(indicadores.desgaste_vida_mm, 'mm')}</span></p>
+            <p><strong>Desgaste utilizado</strong><span>{medida(indicadores.porcentaje_desgaste_utilizado, '%')}</span></p>
+            <p><strong>Última presión</strong><span>{medida(indicadores.ultima_presion_psi, 'psi')}</span></p>
+            <p><strong>Última inspección</strong><span>{indicadores.ultima_inspeccion ? `${indicadores.ultima_inspeccion.fecha} · ${indicadores.ultima_inspeccion.condicion}` : 'No disponible'}</span></p>
+            <p><strong>Alertas activas</strong><span>{indicadores.alertas_abiertas + indicadores.alertas_en_atencion} abiertas o en atención · {indicadores.alertas_criticas_no_finales} críticas</span></p>
+            <p><strong>Montaje actual</strong><span>{indicadores.montado ? `${indicadores.unidad_actual.codigo} · ${indicadores.posicion_actual.codigo}` : 'No disponible'}</span></p>
+            <p><strong>Mantenimientos</strong><span>{indicadores.mantenimientos_total} en total · {indicadores.mantenimientos_activos} activos · {indicadores.mantenimientos_finalizados} finalizados</span></p>
+            <p><strong>Costo de mantenimiento</strong><span>{costosTexto(indicadores.costo_mantenimiento_total)}</span></p>
+            <p><strong>Adquisición</strong><span>{indicadores.costo_adquisicion ? `${indicadores.costo_adquisicion} ${indicadores.moneda_adquisicion || ''}` : 'No disponible'}</span></p>
+            <p><strong>Kilómetros de la vida</strong><span>No disponible</span></p>
+            <p><strong>Costo por kilómetro</strong><span>No disponible</span></p>
+            <p><strong>Proyección</strong><span>No disponible</span></p>
+          </div>
+          <p>{indicadores.rendimiento.motivo}</p>
+        </article>
+      ) : null}
       {tab === 'mantenimiento' ? (
         <table className="data-table">
           <thead>

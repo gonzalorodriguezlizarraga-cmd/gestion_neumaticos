@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Routes;
 
+use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
@@ -11,6 +12,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\EstadoNeumaticoController;
+use App\Controllers\IndicadorController;
 use App\Controllers\InspeccionController;
 use App\Controllers\MantenimientoController;
 use App\Controllers\MarcaNeumaticoController;
@@ -48,6 +50,8 @@ final class ApiRoutes
         InspeccionController $inspecciones,
         MantenimientoController $mantenimientos,
         ArchivoController $archivos,
+        AlertaController $alertas,
+        IndicadorController $indicadores,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -151,6 +155,17 @@ final class ApiRoutes
         $router->get('/api/v1/neumaticos/{id}/descarte', static fn (Request $request): ApiResponse => $mantenimientos->descarte($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/mantenimientos', static fn (Request $request): ApiResponse => $mantenimientos->deNeumatico($request), true, $lectura);
 
+        $router->get('/api/v1/tipos-alerta', static fn (Request $request): ApiResponse => $alertas->tipos($request), true, $lectura);
+        $router->get('/api/v1/estados-alerta', static fn (Request $request): ApiResponse => $alertas->estados($request), true, $lectura);
+        $router->get('/api/v1/alertas', static fn (Request $request): ApiResponse => $alertas->index($request), true, $lectura);
+        $router->post('/api/v1/alertas', static fn (Request $request): ApiResponse => $alertas->store($request), true, $operacion);
+        $router->post('/api/v1/alertas/{id}/tomar-atencion', static fn (Request $request): ApiResponse => $alertas->tomarAtencion($request), true, $operacion);
+        $router->post('/api/v1/alertas/{id}/atender', static fn (Request $request): ApiResponse => $alertas->atender($request), true, $operacion);
+        $router->post('/api/v1/alertas/{id}/descartar', static fn (Request $request): ApiResponse => $alertas->descartar($request), true, $operacion);
+        $router->get('/api/v1/alertas/{id}/historial', static fn (Request $request): ApiResponse => $alertas->historial($request), true, $lectura);
+        $router->get('/api/v1/alertas/{id}', static fn (Request $request): ApiResponse => $alertas->show($request), true, $lectura);
+        $router->get('/api/v1/indicadores/operativos', static fn (Request $request): ApiResponse => $indicadores->operativos($request), true, $lectura);
+        $router->get('/api/v1/neumaticos/{id}/indicadores', static fn (Request $request): ApiResponse => $indicadores->deNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->deNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/montajes', static fn (Request $request): ApiResponse => $operaciones->montajesNeumatico($request), true, $lectura);
