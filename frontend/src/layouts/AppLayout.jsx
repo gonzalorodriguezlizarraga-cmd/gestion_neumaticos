@@ -19,6 +19,7 @@ export function AppLayout() {
           <NavLink to="/dashboard">Inicio</NavLink>
           <NavLink to="/clientes">Clientes</NavLink>
           <NavLink to="/unidades">Unidades</NavLink>
+          <NavLink to="/neumaticos">Neumáticos</NavLink>
           <NavLink to="/configuraciones-unidad">Configuraciones</NavLink>
         </nav>
         <div className="topbar-user">

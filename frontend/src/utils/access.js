@@ -26,3 +26,7 @@ export function canManageConfiguraciones(user) {
 export function canManageTipos(user) {
   return isAdmin(user);
 }
+
+export function canManageNeumaticos(user) {
+  return canOperateCliente(user);
+}

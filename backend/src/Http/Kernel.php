@@ -11,6 +11,11 @@ use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
+use App\Controllers\EstadoNeumaticoController;
+use App\Controllers\MarcaNeumaticoController;
+use App\Controllers\MedidaNeumaticoController;
+use App\Controllers\ModeloNeumaticoController;
+use App\Controllers\NeumaticoController;
 use App\Controllers\OrganizacionController;
 use App\Controllers\TipoUnidadController;
 use App\Controllers\UnidadController;
@@ -25,6 +30,11 @@ use App\Repositories\ClienteRepository;
 use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
 use App\Repositories\ConfiguracionUnidadRepository;
+use App\Repositories\EstadoNeumaticoRepository;
+use App\Repositories\MarcaNeumaticoRepository;
+use App\Repositories\MedidaNeumaticoRepository;
+use App\Repositories\ModeloNeumaticoRepository;
+use App\Repositories\NeumaticoRepository;
 use App\Repositories\OrganizacionRepository;
 use App\Repositories\TipoUnidadRepository;
 use App\Repositories\UnidadRepository;
@@ -38,6 +48,11 @@ use App\Services\ClientePolicy;
 use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
 use App\Services\ConfiguracionUnidadService;
+use App\Services\EstadoNeumaticoService;
+use App\Services\MarcaNeumaticoService;
+use App\Services\MedidaNeumaticoService;
+use App\Services\ModeloNeumaticoService;
+use App\Services\NeumaticoService;
 use App\Services\OrganizacionService;
 use App\Services\TipoUnidadService;
 use App\Services\UnidadService;
@@ -47,6 +62,10 @@ use App\Validators\ClienteValidator;
 use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
 use App\Validators\ConfiguracionUnidadValidator;
+use App\Validators\MarcaNeumaticoValidator;
+use App\Validators\MedidaNeumaticoValidator;
+use App\Validators\ModeloNeumaticoValidator;
+use App\Validators\NeumaticoValidator;
 use App\Validators\OrganizacionValidator;
 use App\Validators\TipoUnidadValidator;
 use App\Validators\UnidadValidator;
@@ -135,6 +154,25 @@ final class Kernel
             new UnidadValidator(),
             $transaction,
         );
+        $marcaRepository = new MarcaNeumaticoRepository($pdo);
+        $modeloRepository = new ModeloNeumaticoRepository($pdo);
+        $medidaRepository = new MedidaNeumaticoRepository($pdo);
+        $estadoRepository = new EstadoNeumaticoRepository($pdo);
+        $marcaService = new MarcaNeumaticoService($marcaRepository, $auditoria, $authorization, new MarcaNeumaticoValidator(), $transaction);
+        $modeloService = new ModeloNeumaticoService($modeloRepository, $marcaRepository, $auditoria, $authorization, new ModeloNeumaticoValidator(), $transaction);
+        $medidaService = new MedidaNeumaticoService($medidaRepository, $auditoria, $authorization, new MedidaNeumaticoValidator(), $transaction);
+        $estadoService = new EstadoNeumaticoService($estadoRepository, $authorization);
+        $neumaticoService = new NeumaticoService(
+            new NeumaticoRepository($pdo),
+            $modeloRepository,
+            $medidaRepository,
+            $estadoRepository,
+            $marcaRepository,
+            $auditoria,
+            $authorization,
+            new NeumaticoValidator(),
+            $transaction,
+        );
         $router = new Router();
         ApiRoutes::register(
             $router,
@@ -147,6 +185,11 @@ final class Kernel
             new TipoUnidadController($tipoService),
             new ConfiguracionUnidadController($configuracionService),
             new UnidadController($unidadService),
+            new MarcaNeumaticoController($marcaService),
+            new ModeloNeumaticoController($modeloService),
+            new MedidaNeumaticoController($medidaService),
+            new EstadoNeumaticoController($estadoService),
+            new NeumaticoController($neumaticoService),
         );
 
         return new self(

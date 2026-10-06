@@ -12,6 +12,10 @@ import { ConfiguracionDetallePage } from './pages/configuraciones/ConfiguracionD
 import { ConfiguracionFormPage } from './pages/configuraciones/ConfiguracionFormPage';
 import { ConfiguracionesPage } from './pages/configuraciones/ConfiguracionesPage';
 import { TiposUnidadPage } from './pages/configuraciones/TiposUnidadPage';
+import { CatalogoNeumaticosPage } from './pages/neumaticos/CatalogoNeumaticosPage';
+import { NeumaticoDetallePage } from './pages/neumaticos/NeumaticoDetallePage';
+import { NeumaticoFormPage } from './pages/neumaticos/NeumaticoFormPage';
+import { NeumaticosPage } from './pages/neumaticos/NeumaticosPage';
 import { UnidadDetallePage } from './pages/unidades/UnidadDetallePage';
 import { UnidadFormPage } from './pages/unidades/UnidadFormPage';
 import { UnidadesPage } from './pages/unidades/UnidadesPage';
@@ -32,6 +36,11 @@ export function App() {
           <Route path="/unidades/nueva" element={<UnidadFormPage />} />
           <Route path="/unidades/:id" element={<UnidadDetallePage />} />
           <Route path="/unidades/:id/editar" element={<UnidadFormPage />} />
+          <Route path="/neumaticos" element={<NeumaticosPage />} />
+          <Route path="/neumaticos/nuevo" element={<NeumaticoFormPage />} />
+          <Route path="/neumaticos/catalogo" element={<CatalogoNeumaticosPage />} />
+          <Route path="/neumaticos/:id" element={<NeumaticoDetallePage />} />
+          <Route path="/neumaticos/:id/editar" element={<NeumaticoFormPage />} />
           <Route path="/configuraciones-unidad" element={<ConfiguracionesPage />} />
           <Route path="/configuraciones-unidad/nueva" element={<ConfiguracionFormPage />} />
           <Route path="/configuraciones-unidad/:id" element={<ConfiguracionDetallePage />} />
