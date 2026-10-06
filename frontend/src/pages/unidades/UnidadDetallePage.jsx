@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { changeUnidadEstado, deleteUnidad, getUnidad } from '../../api/unidades';
+import { NeumaticosMontados } from './NeumaticosMontados';
 import { EstadoBadge } from '../../components/EstadoBadge';
 import { useAuth } from '../../auth/AuthContext';
 import { canManageUnidades, isAdmin } from '../../utils/access';
@@ -94,6 +95,7 @@ export function UnidadDetallePage() {
           </form>
         ) : null}
       </article>
+      <NeumaticosMontados unidad={unidad} operate={operate} onChanged={load} />
     </section>
   );
 }

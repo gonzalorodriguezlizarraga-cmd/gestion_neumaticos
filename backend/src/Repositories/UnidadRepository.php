@@ -128,10 +128,8 @@ final class UnidadRepository
 
     /**
      * Bloquea el cambio de configuracion_id cuando la unidad ya tiene
-     * operaciones que dependen de sus posiciones. Hoy cubre montajes e
-     * inspecciones. En BLOQUE 4 debe ampliarse a movimientos_neumatico
-     * con posicion_origen_id o posicion_destino_id. No consultar movimientos
-     * hasta que ese módulo exista.
+     * operaciones que dependen del significado de sus posiciones:
+     * montajes, inspecciones o movimientos con posición de origen o destino.
      */
     public function tieneHistoricoOperativo(int $id): bool
     {
@@ -139,10 +137,15 @@ final class UnidadRepository
             'SELECT (
                 (SELECT COUNT(*) FROM montajes_neumatico WHERE unidad_id = :unidad)
                 + (SELECT COUNT(*) FROM inspecciones WHERE unidad_id = :unidad_insp)
+                + (SELECT COUNT(*) FROM movimientos_neumatico
+                    WHERE (unidad_origen_id = :origen AND posicion_origen_id IS NOT NULL)
+                       OR (unidad_destino_id = :destino AND posicion_destino_id IS NOT NULL))
              )'
         );
         $statement->bindValue('unidad', $id, PDO::PARAM_INT);
         $statement->bindValue('unidad_insp', $id, PDO::PARAM_INT);
+        $statement->bindValue('origen', $id, PDO::PARAM_INT);
+        $statement->bindValue('destino', $id, PDO::PARAM_INT);
         $statement->execute();
 
         return (int) $statement->fetchColumn() > 0;

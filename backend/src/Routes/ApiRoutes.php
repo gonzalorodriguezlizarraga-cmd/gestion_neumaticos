@@ -14,6 +14,7 @@ use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
+use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
 use App\Controllers\TipoUnidadController;
 use App\Controllers\UnidadController;
@@ -40,6 +41,7 @@ final class ApiRoutes
         MedidaNeumaticoController $medidas,
         EstadoNeumaticoController $estados,
         NeumaticoController $neumaticos,
+        OperacionNeumaticoController $operaciones,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -76,6 +78,8 @@ final class ApiRoutes
 
         $router->get('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->index($request), true, $lectura);
         $router->post('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->store($request), true, $operacion);
+        $router->get('/api/v1/unidades/{id}/montajes-activos', static fn (Request $request): ApiResponse => $operaciones->montajesActivos($request), true, $lectura);
+        $router->get('/api/v1/unidades/{id}/movimientos', static fn (Request $request): ApiResponse => $operaciones->movimientosUnidad($request), true, $lectura);
         $router->get('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->show($request), true, $lectura);
         $router->put('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->update($request), true, $operacion);
         $router->patch('/api/v1/unidades/{id}/estado', static fn (Request $request): ApiResponse => $unidades->estado($request), true, $operacion);
@@ -103,7 +107,15 @@ final class ApiRoutes
 
         $router->get('/api/v1/neumaticos', static fn (Request $request): ApiResponse => $neumaticos->index($request), true, $lectura);
         $router->post('/api/v1/neumaticos', static fn (Request $request): ApiResponse => $neumaticos->store($request), true, $operacion);
+        $router->post('/api/v1/montajes', static fn (Request $request): ApiResponse => $operaciones->montar($request), true, $operacion);
+        $router->post('/api/v1/montajes/{id}/desmontar', static fn (Request $request): ApiResponse => $operaciones->desmontar($request), true, $operacion);
+        $router->post('/api/v1/rotaciones', static fn (Request $request): ApiResponse => $operaciones->rotar($request), true, $operacion);
+        $router->post('/api/v1/transferencias', static fn (Request $request): ApiResponse => $operaciones->transferir($request), true, $operacion);
+        $router->get('/api/v1/movimientos-neumatico', static fn (Request $request): ApiResponse => $operaciones->movimientos($request), true, $lectura);
+
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);
+        $router->get('/api/v1/neumaticos/{id}/montajes', static fn (Request $request): ApiResponse => $operaciones->montajesNeumatico($request), true, $lectura);
+        $router->get('/api/v1/neumaticos/{id}/movimientos', static fn (Request $request): ApiResponse => $operaciones->movimientosNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/vidas', static fn (Request $request): ApiResponse => $neumaticos->vidas($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}', static fn (Request $request): ApiResponse => $neumaticos->show($request), true, $lectura);
         $router->put('/api/v1/neumaticos/{id}', static fn (Request $request): ApiResponse => $neumaticos->update($request), true, $operacion);

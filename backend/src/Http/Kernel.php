@@ -16,6 +16,7 @@ use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
+use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
 use App\Controllers\TipoUnidadController;
 use App\Controllers\UnidadController;
@@ -35,6 +36,7 @@ use App\Repositories\MarcaNeumaticoRepository;
 use App\Repositories\MedidaNeumaticoRepository;
 use App\Repositories\ModeloNeumaticoRepository;
 use App\Repositories\NeumaticoRepository;
+use App\Repositories\OperacionNeumaticoRepository;
 use App\Repositories\OrganizacionRepository;
 use App\Repositories\TipoUnidadRepository;
 use App\Repositories\UnidadRepository;
@@ -53,6 +55,7 @@ use App\Services\MarcaNeumaticoService;
 use App\Services\MedidaNeumaticoService;
 use App\Services\ModeloNeumaticoService;
 use App\Services\NeumaticoService;
+use App\Services\OperacionNeumaticoService;
 use App\Services\OrganizacionService;
 use App\Services\TipoUnidadService;
 use App\Services\UnidadService;
@@ -66,6 +69,7 @@ use App\Validators\MarcaNeumaticoValidator;
 use App\Validators\MedidaNeumaticoValidator;
 use App\Validators\ModeloNeumaticoValidator;
 use App\Validators\NeumaticoValidator;
+use App\Validators\OperacionNeumaticoValidator;
 use App\Validators\OrganizacionValidator;
 use App\Validators\TipoUnidadValidator;
 use App\Validators\UnidadValidator;
@@ -173,6 +177,13 @@ final class Kernel
             new NeumaticoValidator(),
             $transaction,
         );
+        $operacionService = new OperacionNeumaticoService(
+            new OperacionNeumaticoRepository($pdo),
+            $auditoria,
+            $authorization,
+            new OperacionNeumaticoValidator(),
+            $transaction,
+        );
         $router = new Router();
         ApiRoutes::register(
             $router,
@@ -190,6 +201,7 @@ final class Kernel
             new MedidaNeumaticoController($medidaService),
             new EstadoNeumaticoController($estadoService),
             new NeumaticoController($neumaticoService),
+            new OperacionNeumaticoController($operacionService),
         );
 
         return new self(

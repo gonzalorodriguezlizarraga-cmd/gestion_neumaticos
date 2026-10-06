@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { deleteNeumatico, getNeumatico, listHistorialEstados, listVidas } from '../../api/neumaticos';
+import { listMontajesNeumatico, listMovimientosNeumatico } from '../../api/operaciones';
 import { EstadoBadge } from '../../components/EstadoBadge';
 import { useAuth } from '../../auth/AuthContext';
 import { canManageNeumaticos } from '../../utils/access';
+import { MontajeNeumatico } from '../operaciones/MontajeNeumatico';
+import { MovimientosTabla } from '../operaciones/MovimientosTabla';
 
 export function NeumaticoDetallePage() {
   const { id } = useParams();
@@ -14,6 +17,9 @@ export function NeumaticoDetallePage() {
   const [neumatico, setNeumatico] = useState(null);
   const [historial, setHistorial] = useState([]);
   const [vidas, setVidas] = useState([]);
+  const [montajes, setMontajes] = useState([]);
+  const [movimientos, setMovimientos] = useState([]);
+  const [version, setVersion] = useState(0);
   const [tab, setTab] = useState('resumen');
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
@@ -30,14 +36,21 @@ export function NeumaticoDetallePage() {
       }
       setNeumatico(result.payload.data);
       setError('');
-      const [hist, life] = await Promise.all([listHistorialEstados(id), listVidas(id)]);
+      const [hist, life, mounts, moves] = await Promise.all([
+        listHistorialEstados(id),
+        listVidas(id),
+        listMontajesNeumatico(id),
+        listMovimientosNeumatico(id),
+      ]);
       if (cancelled) return;
       setHistorial(hist.ok ? hist.payload?.data ?? [] : []);
       setVidas(life.ok ? life.payload?.data ?? [] : []);
+      setMontajes(mounts.ok ? mounts.payload?.data ?? [] : []);
+      setMovimientos(moves.ok ? moves.payload?.data ?? [] : []);
     }
     load();
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, version]);
 
   if (!neumatico && error) return <section><p className="form-error">{error}</p><Link to="/neumaticos">Volver</Link></section>;
   if (!neumatico) return <p>Cargando neumático…</p>;
@@ -77,7 +90,10 @@ export function NeumaticoDetallePage() {
         <button type="button" className={tab === 'resumen' ? 'tab active' : 'tab'} onClick={() => setTab('resumen')}>Resumen</button>
         <button type="button" className={tab === 'historial' ? 'tab active' : 'tab'} onClick={() => setTab('historial')}>Historial de estados</button>
         <button type="button" className={tab === 'vidas' ? 'tab active' : 'tab'} onClick={() => setTab('vidas')}>Vidas</button>
+        <button type="button" className={tab === 'montajes' ? 'tab active' : 'tab'} onClick={() => setTab('montajes')}>Montajes</button>
+        <button type="button" className={tab === 'movimientos' ? 'tab active' : 'tab'} onClick={() => setTab('movimientos')}>Movimientos</button>
       </div>
+      {operate && disponible ? <MontajeNeumatico neumatico={neumatico} onDone={() => setVersion((current) => current + 1)} /> : null}
       {tab === 'resumen' ? (
         <article className="panel">
           <div className="summary-grid">
@@ -123,6 +139,30 @@ export function NeumaticoDetallePage() {
           ))}
         </ul>
       ) : null}
+      {tab === 'montajes' ? (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Unidad</th><th>Posición</th><th>Montaje</th><th>Desmontaje</th><th>Km</th><th>Horómetro</th><th>Motivo</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {montajes.length === 0 ? <tr><td colSpan={8}>No hay montajes.</td></tr> : montajes.map((item) => (
+              <tr key={item.id}>
+                <td data-label="Unidad"><Link to={`/unidades/${item.unidad.id}`}>{item.unidad.codigo}</Link></td>
+                <td data-label="Posición">{item.posicion.codigo}</td>
+                <td data-label="Montaje">{item.fecha_montaje}</td>
+                <td data-label="Desmontaje">{item.fecha_desmontaje || '—'}</td>
+                <td data-label="Km">{item.km_montaje ?? '—'} / {item.km_desmontaje ?? '—'}</td>
+                <td data-label="Horómetro">{item.horometro_montaje ?? '—'} / {item.horometro_desmontaje ?? '—'}</td>
+                <td data-label="Motivo">{item.motivo_desmontaje || '—'}</td>
+                <td data-label="Estado">{item.activo ? 'Activo' : 'Cerrado'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+      {tab === 'movimientos' ? <MovimientosTabla rows={movimientos} conNeumatico={false} /> : null}
     </section>
   );
 }

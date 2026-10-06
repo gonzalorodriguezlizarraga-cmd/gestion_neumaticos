@@ -278,11 +278,19 @@ input:focus, select:focus, textarea:focus {
 }
 .search-select-menu button:hover { background: #f6ebe3; }
 .search-select-empty { padding: 0.5rem 0.6rem; color: var(--muted); }
+.axle-list { display: grid; gap: 0.9rem; margin-top: 0.8rem; }
+.axle-card h3 { margin: 0 0 0.45rem; font-size: 1rem; }
+.position-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.7rem; }
+.position-card { display: grid; gap: 0.2rem; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 0.8rem; background: #fff; }
+.position-card.libre { background: #f6f7f9; }
+.position-card span { color: var(--muted); }
+.stack-form { display: grid; gap: 0.7rem; margin-top: 1rem; }
+.op-preview { margin: 0; padding-left: 1.1rem; }
 
 @media (max-width: 760px) {
   .topbar, .topbar-user, .brand { align-items: flex-start; }
   .topbar { flex-direction: column; }
-  .grid, .split, .summary-grid { grid-template-columns: 1fr; }
+  .grid, .split, .summary-grid, .position-grid { grid-template-columns: 1fr; }
   .topbar-user, .main-nav { width: 100%; }
   .record-list li { flex-direction: column; }
   .data-table thead { display: none; }
