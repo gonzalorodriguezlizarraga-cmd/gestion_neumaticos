@@ -1,0 +1,13 @@
+{
+    "name": "neumacontrol/backend",
+    "description": "API de autenticación y autorización multicliente de NeumaControl",
+    "type": "project",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}

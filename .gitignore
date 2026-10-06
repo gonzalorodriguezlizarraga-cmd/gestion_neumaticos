@@ -1,0 +1,9 @@
+backend/.env
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+backend/storage/*.local
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+.DS_Store
+Thumbs.db
