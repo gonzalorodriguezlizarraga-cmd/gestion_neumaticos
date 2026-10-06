@@ -1,4 +1,5 @@
 backend/.env
+backend/vendor/
 backend/storage/logs/*
 !backend/storage/logs/.gitkeep
 backend/storage/archivos/*

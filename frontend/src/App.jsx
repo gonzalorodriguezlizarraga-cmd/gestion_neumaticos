@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './layouts/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { useAuth } from './auth/AuthContext';
+import { canOperateCliente, canReadComercial } from './utils/access';
+import { ReportesPage } from './pages/reportes/ReportesPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ForbiddenPage } from './pages/ForbiddenPage';
 import { LoginPage } from './pages/LoginPage';
@@ -37,6 +40,18 @@ import { UnidadDetallePage } from './pages/unidades/UnidadDetallePage';
 import { UnidadFormPage } from './pages/unidades/UnidadFormPage';
 import { UnidadesPage } from './pages/unidades/UnidadesPage';
 
+function SoloOperador({ children }) {
+  const { user } = useAuth();
+  if (!canOperateCliente(user)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function SoloComercial({ children }) {
+  const { user } = useAuth();
+  if (!canReadComercial(user)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 export function App() {
   return (
     <Routes>
@@ -45,10 +60,11 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/clientes" element={<ClientesPage />} />
-          <Route path="/clientes/nuevo" element={<ClienteFormPage />} />
-          <Route path="/clientes/:id" element={<ClienteDetallePage />} />
-          <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
+          <Route path="/reportes" element={<ReportesPage />} />
+          <Route path="/clientes" element={<SoloOperador><ClientesPage /></SoloOperador>} />
+          <Route path="/clientes/nuevo" element={<SoloOperador><ClienteFormPage /></SoloOperador>} />
+          <Route path="/clientes/:id" element={<SoloOperador><ClienteDetallePage /></SoloOperador>} />
+          <Route path="/clientes/:id/editar" element={<SoloOperador><ClienteFormPage /></SoloOperador>} />
           <Route path="/unidades" element={<UnidadesPage />} />
           <Route path="/unidades/nueva" element={<UnidadFormPage />} />
           <Route path="/unidades/:id" element={<UnidadDetallePage />} />
@@ -59,30 +75,30 @@ export function App() {
           <Route path="/alertas" element={<AlertasPage />} />
           <Route path="/alertas/nueva" element={<AlertaNuevaPage />} />
           <Route path="/alertas/:id" element={<AlertaDetallePage />} />
-          <Route path="/comercial/oportunidades" element={<OportunidadesPage />} />
-          <Route path="/comercial/oportunidades/nueva" element={<OportunidadNuevaPage />} />
-          <Route path="/comercial/oportunidades/desde-alerta/:alertaId" element={<OportunidadDesdeAlertaPage />} />
-          <Route path="/comercial/oportunidades/:id/editar" element={<OportunidadEditarPage />} />
-          <Route path="/comercial/oportunidades/:id" element={<OportunidadDetallePage />} />
-          <Route path="/comercial/seguimientos" element={<SeguimientosPage />} />
-          <Route path="/comercial/cotizaciones" element={<CotizacionesPage />} />
-          <Route path="/comercial/cotizaciones/nueva" element={<CotizacionNuevaPage />} />
-          <Route path="/comercial/cotizaciones/:id/editar" element={<CotizacionEditarPage />} />
-          <Route path="/comercial/cotizaciones/:id" element={<CotizacionDetallePage />} />
-          <Route path="/indicadores" element={<IndicadoresPage />} />
+          <Route path="/comercial/oportunidades" element={<SoloComercial><OportunidadesPage /></SoloComercial>} />
+          <Route path="/comercial/oportunidades/nueva" element={<SoloComercial><OportunidadNuevaPage /></SoloComercial>} />
+          <Route path="/comercial/oportunidades/desde-alerta/:alertaId" element={<SoloComercial><OportunidadDesdeAlertaPage /></SoloComercial>} />
+          <Route path="/comercial/oportunidades/:id/editar" element={<SoloComercial><OportunidadEditarPage /></SoloComercial>} />
+          <Route path="/comercial/oportunidades/:id" element={<SoloComercial><OportunidadDetallePage /></SoloComercial>} />
+          <Route path="/comercial/seguimientos" element={<SoloComercial><SeguimientosPage /></SoloComercial>} />
+          <Route path="/comercial/cotizaciones" element={<SoloComercial><CotizacionesPage /></SoloComercial>} />
+          <Route path="/comercial/cotizaciones/nueva" element={<SoloComercial><CotizacionNuevaPage /></SoloComercial>} />
+          <Route path="/comercial/cotizaciones/:id/editar" element={<SoloComercial><CotizacionEditarPage /></SoloComercial>} />
+          <Route path="/comercial/cotizaciones/:id" element={<SoloComercial><CotizacionDetallePage /></SoloComercial>} />
+          <Route path="/indicadores" element={<SoloOperador><IndicadoresPage /></SoloOperador>} />
           <Route path="/mantenimientos" element={<MantenimientosPage />} />
           <Route path="/mantenimientos/nuevo" element={<MantenimientoNuevoPage />} />
           <Route path="/mantenimientos/:id" element={<MantenimientoDetallePage />} />
           <Route path="/neumaticos" element={<NeumaticosPage />} />
           <Route path="/neumaticos/nuevo" element={<NeumaticoFormPage />} />
-          <Route path="/neumaticos/catalogo" element={<CatalogoNeumaticosPage />} />
+          <Route path="/neumaticos/catalogo" element={<SoloOperador><CatalogoNeumaticosPage /></SoloOperador>} />
           <Route path="/neumaticos/:id" element={<NeumaticoDetallePage />} />
           <Route path="/neumaticos/:id/editar" element={<NeumaticoFormPage />} />
-          <Route path="/configuraciones-unidad" element={<ConfiguracionesPage />} />
-          <Route path="/configuraciones-unidad/nueva" element={<ConfiguracionFormPage />} />
-          <Route path="/configuraciones-unidad/:id" element={<ConfiguracionDetallePage />} />
-          <Route path="/configuraciones-unidad/:id/editar" element={<ConfiguracionFormPage />} />
-          <Route path="/tipos-unidad" element={<TiposUnidadPage />} />
+          <Route path="/configuraciones-unidad" element={<SoloOperador><ConfiguracionesPage /></SoloOperador>} />
+          <Route path="/configuraciones-unidad/nueva" element={<SoloOperador><ConfiguracionFormPage /></SoloOperador>} />
+          <Route path="/configuraciones-unidad/:id" element={<SoloOperador><ConfiguracionDetallePage /></SoloOperador>} />
+          <Route path="/configuraciones-unidad/:id/editar" element={<SoloOperador><ConfiguracionFormPage /></SoloOperador>} />
+          <Route path="/tipos-unidad" element={<SoloOperador><TiposUnidadPage /></SoloOperador>} />
         </Route>
       </Route>
       <Route path="/403" element={<ForbiddenPage />} />

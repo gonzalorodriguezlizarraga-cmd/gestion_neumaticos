@@ -1,10 +1,14 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { canManageNeumaticos, canReadComercial } from '../utils/access';
+import { canManageNeumaticos, canReadComercial, canSeeReportes, hasRole, isPortal } from '../utils/access';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
   const fullName = [user?.nombres, user?.apellidos].filter(Boolean).join(' ');
+  const portal = isPortal(user);
+  const operador = hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS');
+  const tecnico = hasRole(user, 'TECNICO_INSPECCION');
+  const operacion = operador || tecnico || portal;
 
   return (
     <div className="app-shell">
@@ -18,18 +22,19 @@ export function AppLayout() {
         </div>
         <nav className="main-nav" aria-label="Principal">
           <NavLink to="/dashboard">Inicio</NavLink>
-          <NavLink to="/clientes">Clientes</NavLink>
-          <NavLink to="/unidades">Unidades</NavLink>
-          <NavLink to="/neumaticos">Neumáticos</NavLink>
-          <NavLink to="/inspecciones">Inspecciones</NavLink>
-          <NavLink to="/mantenimientos">Mantenimiento</NavLink>
-          <NavLink to="/alertas">Alertas</NavLink>
+          {operador ? <NavLink to="/clientes">Clientes</NavLink> : null}
+          {operacion ? <NavLink to="/unidades">Unidades</NavLink> : null}
+          {operacion ? <NavLink to="/neumaticos">Neumáticos</NavLink> : null}
+          {operacion ? <NavLink to="/inspecciones">Inspecciones</NavLink> : null}
+          {operacion ? <NavLink to="/mantenimientos">Mantenimiento</NavLink> : null}
+          {operacion ? <NavLink to="/alertas">Alertas</NavLink> : null}
           {canManageNeumaticos(user) ? <NavLink to="/indicadores">Indicadores</NavLink> : null}
+          {canSeeReportes(user) ? <NavLink to="/reportes">Reportes</NavLink> : null}
           {canReadComercial(user) ? <span className="nav-label">Comercial</span> : null}
           {canReadComercial(user) ? <NavLink to="/comercial/oportunidades">Oportunidades</NavLink> : null}
           {canReadComercial(user) ? <NavLink to="/comercial/seguimientos">Seguimientos</NavLink> : null}
           {canReadComercial(user) ? <NavLink to="/comercial/cotizaciones">Cotizaciones</NavLink> : null}
-          <NavLink to="/configuraciones-unidad">Configuraciones</NavLink>
+          {operador ? <NavLink to="/configuraciones-unidad">Configuraciones</NavLink> : null}
         </nav>
         <div className="topbar-user">
           <div>

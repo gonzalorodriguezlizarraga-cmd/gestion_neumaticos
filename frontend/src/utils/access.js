@@ -39,6 +39,19 @@ export function canWriteComercial(user) {
   return hasRole(user, 'ADMIN_GENERAL', 'VENDEDOR');
 }
 
+export function isPortal(user) {
+  return hasRole(user, 'ADMIN_CLIENTE', 'CONSULTA_EJECUTIVA')
+    && !hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS');
+}
+
+export function isConsulta(user) {
+  return hasRole(user, 'CONSULTA_EJECUTIVA') && !hasRole(user, 'ADMIN_CLIENTE', 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS');
+}
+
+export function canSeeReportes(user) {
+  return hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION', 'ADMIN_CLIENTE', 'CONSULTA_EJECUTIVA');
+}
+
 export function canInspect(user) {
   return hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION');
 }

@@ -9,6 +9,7 @@ use App\Config\Database;
 use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
 use App\Controllers\CotizacionController;
+use App\Controllers\DashboardController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
@@ -23,6 +24,7 @@ use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
 use App\Controllers\OportunidadController;
+use App\Controllers\ReporteController;
 use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
 use App\Controllers\SeguimientoController;
@@ -40,6 +42,7 @@ use App\Repositories\ClienteRepository;
 use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
 use App\Repositories\CotizacionRepository;
+use App\Repositories\DashboardRepository;
 use App\Repositories\ConfiguracionUnidadRepository;
 use App\Repositories\EstadoNeumaticoRepository;
 use App\Repositories\IndicadorRepository;
@@ -50,6 +53,7 @@ use App\Repositories\MedidaNeumaticoRepository;
 use App\Repositories\ModeloNeumaticoRepository;
 use App\Repositories\NeumaticoRepository;
 use App\Repositories\OportunidadRepository;
+use App\Repositories\ReporteRepository;
 use App\Repositories\OperacionNeumaticoRepository;
 use App\Repositories\OrganizacionRepository;
 use App\Repositories\TipoUnidadRepository;
@@ -67,7 +71,9 @@ use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
 use App\Services\ComercialAcceso;
 use App\Services\ConfiguracionUnidadService;
+use App\Services\AlcanceConsulta;
 use App\Services\CotizacionService;
+use App\Services\DashboardService;
 use App\Services\EstadoNeumaticoService;
 use App\Services\IndicadorService;
 use App\Services\InspeccionService;
@@ -79,6 +85,7 @@ use App\Services\NeumaticoService;
 use App\Services\OportunidadService;
 use App\Services\OperacionNeumaticoService;
 use App\Services\OrganizacionService;
+use App\Services\ReporteService;
 use App\Services\SeguimientoService;
 use App\Services\TipoUnidadService;
 use App\Services\UnidadService;
@@ -243,7 +250,11 @@ final class Kernel
             new AlertaValidator(),
             $transaction,
         );
-        $indicadorService = new IndicadorService(new IndicadorRepository($pdo), $authorization);
+        $indicadorRepository = new IndicadorRepository($pdo);
+        $indicadorService = new IndicadorService($indicadorRepository, $authorization);
+        $alcance = new AlcanceConsulta($pdo, $indicadorRepository, $authorization);
+        $dashboardService = new DashboardService(new DashboardRepository($pdo), $indicadorService, $alcance, $authorization);
+        $reporteService = new ReporteService(new ReporteRepository($pdo), $alcance, $authorization);
         $comercial = new ComercialAcceso($authorization);
         $oportunidadRepository = new OportunidadRepository($pdo);
         $seguimientoRepository = new SeguimientoRepository($pdo);
@@ -302,6 +313,8 @@ final class Kernel
             new OportunidadController($oportunidadService),
             new SeguimientoController($seguimientoService),
             new CotizacionController($cotizacionService),
+            new DashboardController($dashboardService),
+            new ReporteController($reporteService),
         );
 
         return new self(

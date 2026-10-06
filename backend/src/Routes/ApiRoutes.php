@@ -7,6 +7,7 @@ namespace App\Routes;
 use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
 use App\Controllers\CotizacionController;
+use App\Controllers\DashboardController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
@@ -21,6 +22,7 @@ use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
 use App\Controllers\OportunidadController;
+use App\Controllers\ReporteController;
 use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
 use App\Controllers\SeguimientoController;
@@ -59,6 +61,8 @@ final class ApiRoutes
         OportunidadController $oportunidades,
         SeguimientoController $seguimientos,
         CotizacionController $cotizaciones,
+        DashboardController $dashboard,
+        ReporteController $reportes,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -199,6 +203,16 @@ final class ApiRoutes
         $router->post('/api/v1/cotizaciones/{id}/rechazar', static fn (Request $request): ApiResponse => $cotizaciones->rechazar($request), true, $comercialEscritura);
         $router->post('/api/v1/cotizaciones/{id}/anular', static fn (Request $request): ApiResponse => $cotizaciones->anular($request), true, $comercialEscritura);
         $router->get('/api/v1/cotizaciones/{id}', static fn (Request $request): ApiResponse => $cotizaciones->show($request), true, $comercialLectura);
+        $tableroOperador = ['ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION'];
+        $tableroCliente = ['ADMIN_CLIENTE', 'CONSULTA_EJECUTIVA'];
+        $tableroComercial = ['VENDEDOR'];
+        $reportesRoles = ['ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION', 'ADMIN_CLIENTE', 'CONSULTA_EJECUTIVA'];
+        $router->get('/api/v1/dashboard/operador', static fn (Request $request): ApiResponse => $dashboard->operador($request), true, $tableroOperador);
+        $router->get('/api/v1/dashboard/cliente', static fn (Request $request): ApiResponse => $dashboard->cliente($request), true, $tableroCliente);
+        $router->get('/api/v1/dashboard/comercial', static fn (Request $request): ApiResponse => $dashboard->comercial($request), true, $tableroComercial);
+        $router->get('/api/v1/reportes/{tipo}/pdf', static fn (Request $request): ApiResponse => $reportes->pdf($request), true, $reportesRoles);
+        $router->get('/api/v1/reportes/{tipo}/csv', static fn (Request $request): ApiResponse => $reportes->csv($request), true, $reportesRoles);
+        $router->get('/api/v1/reportes/{tipo}', static fn (Request $request): ApiResponse => $reportes->consultar($request), true, $reportesRoles);
         $router->get('/api/v1/indicadores/operativos', static fn (Request $request): ApiResponse => $indicadores->operativos($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/indicadores', static fn (Request $request): ApiResponse => $indicadores->deNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);

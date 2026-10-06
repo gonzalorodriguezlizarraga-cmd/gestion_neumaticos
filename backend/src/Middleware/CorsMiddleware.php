@@ -20,6 +20,7 @@ final class CorsMiddleware
             'Vary' => 'Origin',
             'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept',
             'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+            'Access-Control-Expose-Headers' => 'Content-Disposition',
             'Access-Control-Max-Age' => '600',
         ];
 

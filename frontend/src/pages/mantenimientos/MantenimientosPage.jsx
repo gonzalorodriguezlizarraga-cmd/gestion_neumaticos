@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { listClientes, errorMessage } from '../../api/clientes';
 import { pagina } from '../../api/inspecciones';
 import { listMantenimientos } from '../../api/mantenimientos';
@@ -29,9 +29,11 @@ export function MantenimientosPage() {
   const { user } = useAuth();
   const admin = isAdmin(user);
   const propios = user?.clientes ?? [];
-  const [draft, setDraft] = useState(EMPTY);
+  const [params] = useSearchParams();
+  const inicial = { ...EMPTY, estado: params.get('estado') || '' };
+  const [draft, setDraft] = useState(inicial);
   const [clienteLabel, setClienteLabel] = useState('');
-  const [filters, setFilters] = useState(EMPTY);
+  const [filters, setFilters] = useState(inicial);
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);

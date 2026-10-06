@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 $basePath = __DIR__;
 
+$vendor = $basePath . '/vendor/autoload.php';
+if (is_file($vendor)) {
+    require $vendor;
+}
+
 spl_autoload_register(static function (string $class) use ($basePath): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) {

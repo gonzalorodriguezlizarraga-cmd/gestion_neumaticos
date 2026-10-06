@@ -3,7 +3,8 @@
     "description": "API de autenticación y autorización multicliente de NeumaControl",
     "type": "project",
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "dompdf/dompdf": "^3.1"
     },
     "autoload": {
         "psr-4": {
