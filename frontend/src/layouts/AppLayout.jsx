@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { canManageNeumaticos } from '../utils/access';
+import { canManageNeumaticos, canReadComercial } from '../utils/access';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
@@ -25,6 +25,10 @@ export function AppLayout() {
           <NavLink to="/mantenimientos">Mantenimiento</NavLink>
           <NavLink to="/alertas">Alertas</NavLink>
           {canManageNeumaticos(user) ? <NavLink to="/indicadores">Indicadores</NavLink> : null}
+          {canReadComercial(user) ? <span className="nav-label">Comercial</span> : null}
+          {canReadComercial(user) ? <NavLink to="/comercial/oportunidades">Oportunidades</NavLink> : null}
+          {canReadComercial(user) ? <NavLink to="/comercial/seguimientos">Seguimientos</NavLink> : null}
+          {canReadComercial(user) ? <NavLink to="/comercial/cotizaciones">Cotizaciones</NavLink> : null}
           <NavLink to="/configuraciones-unidad">Configuraciones</NavLink>
         </nav>
         <div className="topbar-user">

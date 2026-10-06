@@ -27,6 +27,14 @@ const LABELS = {
   EN_ATENCION: 'En atención',
   ATENDIDA: 'Atendida',
   DESCARTADA: 'Descartada',
+  EN_SEGUIMIENTO: 'En seguimiento',
+  COTIZADA: 'Cotizada',
+  GANADA: 'Ganada',
+  PERDIDA: 'Perdida',
+  CANCELADA: 'Cancelada',
+  ENVIADA: 'Enviada',
+  ACEPTADA: 'Aceptada',
+  RECHAZADA: 'Rechazada',
 };
 
 export function EstadoBadge({ estado }) {

@@ -8,6 +8,7 @@ use App\Config\Config;
 use App\Config\Database;
 use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
+use App\Controllers\CotizacionController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
@@ -21,8 +22,10 @@ use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
+use App\Controllers\OportunidadController;
 use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
+use App\Controllers\SeguimientoController;
 use App\Controllers\TipoUnidadController;
 use App\Controllers\UnidadController;
 use App\Exceptions\NotFoundException;
@@ -36,6 +39,7 @@ use App\Repositories\ClienteContactoRepository;
 use App\Repositories\ClienteRepository;
 use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
+use App\Repositories\CotizacionRepository;
 use App\Repositories\ConfiguracionUnidadRepository;
 use App\Repositories\EstadoNeumaticoRepository;
 use App\Repositories\IndicadorRepository;
@@ -45,11 +49,13 @@ use App\Repositories\MarcaNeumaticoRepository;
 use App\Repositories\MedidaNeumaticoRepository;
 use App\Repositories\ModeloNeumaticoRepository;
 use App\Repositories\NeumaticoRepository;
+use App\Repositories\OportunidadRepository;
 use App\Repositories\OperacionNeumaticoRepository;
 use App\Repositories\OrganizacionRepository;
 use App\Repositories\TipoUnidadRepository;
 use App\Repositories\UnidadRepository;
 use App\Repositories\RolRepository;
+use App\Repositories\SeguimientoRepository;
 use App\Repositories\UsuarioRepository;
 use App\Routes\ApiRoutes;
 use App\Services\AlertaService;
@@ -59,7 +65,9 @@ use App\Services\ClienteContactoService;
 use App\Services\ClientePolicy;
 use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
+use App\Services\ComercialAcceso;
 use App\Services\ConfiguracionUnidadService;
+use App\Services\CotizacionService;
 use App\Services\EstadoNeumaticoService;
 use App\Services\IndicadorService;
 use App\Services\InspeccionService;
@@ -68,8 +76,10 @@ use App\Services\MarcaNeumaticoService;
 use App\Services\MedidaNeumaticoService;
 use App\Services\ModeloNeumaticoService;
 use App\Services\NeumaticoService;
+use App\Services\OportunidadService;
 use App\Services\OperacionNeumaticoService;
 use App\Services\OrganizacionService;
+use App\Services\SeguimientoService;
 use App\Services\TipoUnidadService;
 use App\Services\UnidadService;
 use App\Support\ArchivoAlmacen;
@@ -77,6 +87,7 @@ use App\Support\Jwt;
 use App\Support\Transaction;
 use App\Validators\AlertaValidator;
 use App\Validators\ClienteValidator;
+use App\Validators\CotizacionValidator;
 use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
 use App\Validators\ConfiguracionUnidadValidator;
@@ -86,11 +97,13 @@ use App\Validators\MarcaNeumaticoValidator;
 use App\Validators\MedidaNeumaticoValidator;
 use App\Validators\ModeloNeumaticoValidator;
 use App\Validators\NeumaticoValidator;
+use App\Validators\OportunidadValidator;
 use App\Validators\OperacionNeumaticoValidator;
 use App\Validators\OrganizacionValidator;
 use App\Validators\TipoUnidadValidator;
 use App\Validators\UnidadValidator;
 use App\Validators\ResponsableValidator;
+use App\Validators\SeguimientoValidator;
 use Throwable;
 
 final class Kernel
@@ -231,6 +244,38 @@ final class Kernel
             $transaction,
         );
         $indicadorService = new IndicadorService(new IndicadorRepository($pdo), $authorization);
+        $comercial = new ComercialAcceso($authorization);
+        $oportunidadRepository = new OportunidadRepository($pdo);
+        $seguimientoRepository = new SeguimientoRepository($pdo);
+        $cotizacionRepository = new CotizacionRepository($pdo);
+        $oportunidadService = new OportunidadService(
+            $oportunidadRepository,
+            $seguimientoRepository,
+            $cotizacionRepository,
+            $auditoria,
+            $authorization,
+            $comercial,
+            new OportunidadValidator(),
+            $transaction,
+        );
+        $seguimientoService = new SeguimientoService(
+            $seguimientoRepository,
+            $oportunidadRepository,
+            $auditoria,
+            $authorization,
+            $comercial,
+            new SeguimientoValidator(),
+            $transaction,
+        );
+        $cotizacionService = new CotizacionService(
+            $cotizacionRepository,
+            $oportunidadRepository,
+            $auditoria,
+            $authorization,
+            $comercial,
+            new CotizacionValidator(),
+            $transaction,
+        );
         $router = new Router();
         ApiRoutes::register(
             $router,
@@ -254,6 +299,9 @@ final class Kernel
             new ArchivoController($inspeccionService, $mantenimientoService),
             new AlertaController($alertaService),
             new IndicadorController($indicadorService),
+            new OportunidadController($oportunidadService),
+            new SeguimientoController($seguimientoService),
+            new CotizacionController($cotizacionService),
         );
 
         return new self(

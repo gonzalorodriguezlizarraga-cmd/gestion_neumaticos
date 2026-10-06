@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { atenderAlerta, descartarAlerta, getAlerta, tomarAtencionAlerta } from '../../api/alertas';
+import { listOportunidades, listResponsablesComerciales } from '../../api/comercial';
 import { useAuth } from '../../auth/AuthContext';
 import { EstadoBadge } from '../../components/EstadoBadge';
-import { canManageNeumaticos } from '../../utils/access';
+import { canManageNeumaticos, canWriteComercial } from '../../utils/access';
 import { mensaje, origenTexto } from './texto';
 
 export function AlertaDetallePage() {
@@ -15,6 +16,7 @@ export function AlertaDetallePage() {
   const [panel, setPanel] = useState('');
   const [observacion, setObservacion] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [puedeCrearOportunidad, setPuedeCrearOportunidad] = useState(false);
 
   async function cargar() {
     const result = await getAlerta(id);
@@ -30,6 +32,24 @@ export function AlertaDetallePage() {
   }
 
   useEffect(() => { cargar(); }, [id]);
+
+  useEffect(() => {
+    if (!alerta || !canWriteComercial(user)) {
+      setPuedeCrearOportunidad(false);
+      return;
+    }
+    let cancelled = false;
+    Promise.all([
+      listOportunidades({ alerta_id: alerta.id, limit: 1 }),
+      listResponsablesComerciales(alerta.cliente.id),
+    ]).then(([oportunidades, responsables]) => {
+      if (cancelled) return;
+      const vinculada = (oportunidades.payload?.total ?? 0) > 0;
+      const hayResponsable = (responsables.payload?.data ?? []).length > 0;
+      setPuedeCrearOportunidad(oportunidades.ok && responsables.ok && !vinculada && hayResponsable);
+    });
+    return () => { cancelled = true; };
+  }, [alerta, user]);
 
   if (!alerta && error) return <section><p className="form-error">{error}</p><Link to="/alertas">Volver</Link></section>;
   if (!alerta) return <section><p>Cargando alerta…</p></section>;
@@ -82,6 +102,11 @@ export function AlertaDetallePage() {
           {abierta ? <button type="button" className="button button-primary" onClick={() => setPanel('atencion')}>Tomar atención</button> : null}
           {abierta || enAtencion ? <button type="button" className="button button-primary" onClick={() => setPanel('atender')}>Atender</button> : null}
           {abierta || enAtencion ? <button type="button" className="button button-quiet" onClick={() => setPanel('descartar')}>Descartar</button> : null}
+        </div>
+      ) : null}
+      {puedeCrearOportunidad ? (
+        <div className="actions">
+          <Link className="button button-primary" to={`/comercial/oportunidades/desde-alerta/${alerta.id}`}>Crear oportunidad</Link>
         </div>
       ) : null}
       {panel ? (

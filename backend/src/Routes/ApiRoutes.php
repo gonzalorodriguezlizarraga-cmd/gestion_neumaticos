@@ -6,6 +6,7 @@ namespace App\Routes;
 
 use App\Controllers\AlertaController;
 use App\Controllers\ArchivoController;
+use App\Controllers\CotizacionController;
 use App\Controllers\AuthController;
 use App\Controllers\ClienteContactoController;
 use App\Controllers\ClienteController;
@@ -19,14 +20,17 @@ use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
 use App\Controllers\NeumaticoController;
+use App\Controllers\OportunidadController;
 use App\Controllers\OperacionNeumaticoController;
 use App\Controllers\OrganizacionController;
+use App\Controllers\SeguimientoController;
 use App\Controllers\TipoUnidadController;
 use App\Controllers\UnidadController;
 use App\Http\ApiResponse;
 use App\Http\Request;
 use App\Http\Router;
 use App\Services\ClientePolicy;
+use App\Services\ComercialAcceso;
 
 final class ApiRoutes
 {
@@ -52,6 +56,9 @@ final class ApiRoutes
         ArchivoController $archivos,
         AlertaController $alertas,
         IndicadorController $indicadores,
+        OportunidadController $oportunidades,
+        SeguimientoController $seguimientos,
+        CotizacionController $cotizaciones,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -164,6 +171,34 @@ final class ApiRoutes
         $router->post('/api/v1/alertas/{id}/descartar', static fn (Request $request): ApiResponse => $alertas->descartar($request), true, $operacion);
         $router->get('/api/v1/alertas/{id}/historial', static fn (Request $request): ApiResponse => $alertas->historial($request), true, $lectura);
         $router->get('/api/v1/alertas/{id}', static fn (Request $request): ApiResponse => $alertas->show($request), true, $lectura);
+        $comercialLectura = ComercialAcceso::LECTURA;
+        $comercialEscritura = ComercialAcceso::ESCRITURA;
+        $router->post('/api/v1/alertas/{id}/crear-oportunidad', static fn (Request $request): ApiResponse => $oportunidades->desdeAlerta($request), true, $comercialEscritura);
+        $router->get('/api/v1/estados-oportunidad', static fn (Request $request): ApiResponse => $oportunidades->estados($request), true, $comercialLectura);
+        $router->get('/api/v1/comercial/clientes', static fn (Request $request): ApiResponse => $oportunidades->clientes($request), true, $comercialLectura);
+        $router->get('/api/v1/comercial/clientes/{id}/responsables', static fn (Request $request): ApiResponse => $oportunidades->responsables($request), true, $comercialLectura, 'id');
+        $router->get('/api/v1/comercial/clientes/{id}/resumen', static fn (Request $request): ApiResponse => $oportunidades->resumen($request), true, $comercialLectura, 'id');
+        $router->get('/api/v1/oportunidades', static fn (Request $request): ApiResponse => $oportunidades->index($request), true, $comercialLectura);
+        $router->post('/api/v1/oportunidades', static fn (Request $request): ApiResponse => $oportunidades->store($request), true, $comercialEscritura);
+        $router->put('/api/v1/oportunidades/{id}', static fn (Request $request): ApiResponse => $oportunidades->update($request), true, $comercialEscritura);
+        $router->post('/api/v1/oportunidades/{id}/iniciar-seguimiento', static fn (Request $request): ApiResponse => $oportunidades->iniciarSeguimiento($request), true, $comercialEscritura);
+        $router->post('/api/v1/oportunidades/{id}/marcar-cotizada', static fn (Request $request): ApiResponse => $oportunidades->marcarCotizada($request), true, $comercialEscritura);
+        $router->post('/api/v1/oportunidades/{id}/ganar', static fn (Request $request): ApiResponse => $oportunidades->ganar($request), true, $comercialEscritura);
+        $router->post('/api/v1/oportunidades/{id}/perder', static fn (Request $request): ApiResponse => $oportunidades->perder($request), true, $comercialEscritura);
+        $router->post('/api/v1/oportunidades/{id}/cancelar', static fn (Request $request): ApiResponse => $oportunidades->cancelar($request), true, $comercialEscritura);
+        $router->get('/api/v1/oportunidades/{id}/historial', static fn (Request $request): ApiResponse => $oportunidades->historial($request), true, $comercialLectura);
+        $router->get('/api/v1/oportunidades/{id}/seguimientos', static fn (Request $request): ApiResponse => $oportunidades->seguimientos($request), true, $comercialLectura);
+        $router->get('/api/v1/oportunidades/{id}', static fn (Request $request): ApiResponse => $oportunidades->show($request), true, $comercialLectura);
+        $router->get('/api/v1/seguimientos-comerciales', static fn (Request $request): ApiResponse => $seguimientos->index($request), true, $comercialLectura);
+        $router->post('/api/v1/seguimientos-comerciales', static fn (Request $request): ApiResponse => $seguimientos->store($request), true, $comercialEscritura);
+        $router->get('/api/v1/cotizaciones', static fn (Request $request): ApiResponse => $cotizaciones->index($request), true, $comercialLectura);
+        $router->post('/api/v1/cotizaciones', static fn (Request $request): ApiResponse => $cotizaciones->store($request), true, $comercialEscritura);
+        $router->put('/api/v1/cotizaciones/{id}', static fn (Request $request): ApiResponse => $cotizaciones->update($request), true, $comercialEscritura);
+        $router->post('/api/v1/cotizaciones/{id}/enviar', static fn (Request $request): ApiResponse => $cotizaciones->enviar($request), true, $comercialEscritura);
+        $router->post('/api/v1/cotizaciones/{id}/aceptar', static fn (Request $request): ApiResponse => $cotizaciones->aceptar($request), true, $comercialEscritura);
+        $router->post('/api/v1/cotizaciones/{id}/rechazar', static fn (Request $request): ApiResponse => $cotizaciones->rechazar($request), true, $comercialEscritura);
+        $router->post('/api/v1/cotizaciones/{id}/anular', static fn (Request $request): ApiResponse => $cotizaciones->anular($request), true, $comercialEscritura);
+        $router->get('/api/v1/cotizaciones/{id}', static fn (Request $request): ApiResponse => $cotizaciones->show($request), true, $comercialLectura);
         $router->get('/api/v1/indicadores/operativos', static fn (Request $request): ApiResponse => $indicadores->operativos($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/indicadores', static fn (Request $request): ApiResponse => $indicadores->deNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);

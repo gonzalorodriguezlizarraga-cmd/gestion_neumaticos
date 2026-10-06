@@ -31,6 +31,14 @@ export function canManageNeumaticos(user) {
   return canOperateCliente(user);
 }
 
+export function canReadComercial(user) {
+  return hasRole(user, 'ADMIN_GENERAL', 'VENDEDOR', 'GESTOR_NEUMATICOS');
+}
+
+export function canWriteComercial(user) {
+  return hasRole(user, 'ADMIN_GENERAL', 'VENDEDOR');
+}
+
 export function canInspect(user) {
   return hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION');
 }

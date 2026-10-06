@@ -20,6 +20,13 @@ import { InspeccionDetallePage } from './pages/inspecciones/InspeccionDetallePag
 import { InspeccionNuevaPage } from './pages/inspecciones/InspeccionNuevaPage';
 import { InspeccionesPage } from './pages/inspecciones/InspeccionesPage';
 import { AlertaDetallePage } from './pages/alertas/AlertaDetallePage';
+import { CotizacionDetallePage } from './pages/comercial/CotizacionDetallePage';
+import { CotizacionEditarPage, CotizacionNuevaPage } from './pages/comercial/CotizacionFormPage';
+import { CotizacionesPage } from './pages/comercial/CotizacionesPage';
+import { OportunidadDetallePage } from './pages/comercial/OportunidadDetallePage';
+import { OportunidadDesdeAlertaPage, OportunidadEditarPage, OportunidadNuevaPage } from './pages/comercial/OportunidadFormPage';
+import { OportunidadesPage } from './pages/comercial/OportunidadesPage';
+import { SeguimientosPage } from './pages/comercial/SeguimientosPage';
 import { AlertaNuevaPage } from './pages/alertas/AlertaNuevaPage';
 import { AlertasPage } from './pages/alertas/AlertasPage';
 import { IndicadoresPage } from './pages/indicadores/IndicadoresPage';
@@ -52,6 +59,16 @@ export function App() {
           <Route path="/alertas" element={<AlertasPage />} />
           <Route path="/alertas/nueva" element={<AlertaNuevaPage />} />
           <Route path="/alertas/:id" element={<AlertaDetallePage />} />
+          <Route path="/comercial/oportunidades" element={<OportunidadesPage />} />
+          <Route path="/comercial/oportunidades/nueva" element={<OportunidadNuevaPage />} />
+          <Route path="/comercial/oportunidades/desde-alerta/:alertaId" element={<OportunidadDesdeAlertaPage />} />
+          <Route path="/comercial/oportunidades/:id/editar" element={<OportunidadEditarPage />} />
+          <Route path="/comercial/oportunidades/:id" element={<OportunidadDetallePage />} />
+          <Route path="/comercial/seguimientos" element={<SeguimientosPage />} />
+          <Route path="/comercial/cotizaciones" element={<CotizacionesPage />} />
+          <Route path="/comercial/cotizaciones/nueva" element={<CotizacionNuevaPage />} />
+          <Route path="/comercial/cotizaciones/:id/editar" element={<CotizacionEditarPage />} />
+          <Route path="/comercial/cotizaciones/:id" element={<CotizacionDetallePage />} />
           <Route path="/indicadores" element={<IndicadoresPage />} />
           <Route path="/mantenimientos" element={<MantenimientosPage />} />
           <Route path="/mantenimientos/nuevo" element={<MantenimientoNuevoPage />} />

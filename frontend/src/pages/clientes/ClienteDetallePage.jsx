@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { getResumenComercial } from '../../api/comercial';
 import { changeClienteEstado, deleteCliente, errorMessage, getCliente } from '../../api/clientes';
 import { EstadoBadge } from '../../components/EstadoBadge';
 import { useAuth } from '../../auth/AuthContext';
-import { canManageResponsables, canOperateCliente, isAdmin } from '../../utils/access';
+import { canManageResponsables, canOperateCliente, canReadComercial, isAdmin } from '../../utils/access';
+import { proximoTexto } from '../comercial/texto';
 import { ContactosPanel } from './ContactosPanel';
 import { EstructuraPanel } from './EstructuraPanel';
 import { ResponsablesPanel } from './ResponsablesPanel';
@@ -25,6 +27,7 @@ export function ClienteDetallePage() {
   const [error, setError] = useState('');
   const [estado, setEstado] = useState('ACTIVO');
   const [confirming, setConfirming] = useState(false);
+  const [comercial, setComercial] = useState(null);
   const tab = params.get('seccion') || 'resumen';
   const admin = isAdmin(user);
   const operate = canOperateCliente(user);
@@ -38,6 +41,12 @@ export function ClienteDetallePage() {
     }
     setCliente(result.payload.data);
     setEstado(result.payload.data.estado);
+    if (canReadComercial(user)) {
+      const resumen = await getResumenComercial(id);
+      setComercial(resumen.ok ? resumen.payload.data : null);
+    } else {
+      setComercial(null);
+    }
     setError('');
   }
 
@@ -118,6 +127,30 @@ export function ClienteDetallePage() {
                 <button className="button button-primary" type="submit">Actualizar estado</button>
               </form>
             ) : null}
+          </div>
+        ) : null}
+        {tab === 'resumen' && comercial ? (
+          <div className="panel">
+            <h2>Comercial</h2>
+            <div className="summary-grid">
+              <p><strong>Oportunidades abiertas</strong><span>{comercial.oportunidades_abiertas}</span></p>
+              <p><strong>Última actividad</strong><span>{comercial.ultima_actividad || 'Sin actividad'}</span></p>
+              <p><strong>Próximo seguimiento</strong><span>{comercial.proximo_seguimiento ? proximoTexto(comercial.proximo_seguimiento) : 'Sin fecha'}</span></p>
+            </div>
+            <h3>Cotizaciones recientes</h3>
+            {(comercial.cotizaciones_recientes ?? []).length === 0 ? <p>Sin cotizaciones.</p> : (
+              <ul className="record-list">
+                {comercial.cotizaciones_recientes.map((item) => (
+                  <li key={item.id}>
+                    <div>
+                      <strong><Link to={`/comercial/cotizaciones/${item.id}`}>{item.numero}</Link></strong>
+                      <span>{item.oportunidad || 'Sin oportunidad'} · {item.total} {item.moneda}</span>
+                    </div>
+                    <EstadoBadge estado={item.estado} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ) : null}
         {tab === 'contactos' ? <ContactosPanel clienteId={id} canWrite={operate} /> : null}
