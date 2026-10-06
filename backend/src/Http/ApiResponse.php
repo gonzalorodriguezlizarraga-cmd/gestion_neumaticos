@@ -16,6 +16,7 @@ final class ApiResponse
         private readonly int $total,
         private readonly ?array $error,
         array $headers = [],
+        private readonly bool $binario = false,
     ) {
         $this->headers = $headers;
     }
@@ -42,6 +43,16 @@ final class ApiResponse
     public static function noContent(): self
     {
         return new self(204, null, 0, null);
+    }
+
+    public static function archivo(string $contenido, string $mime, string $nombre): self
+    {
+        $limpio = preg_replace('/[^A-Za-z0-9._-]/', '_', $nombre) ?: 'archivo';
+
+        return new self(200, $contenido, 1, null, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'attachment; filename="' . $limpio . '"',
+        ], true);
     }
 
     public function status(): int
@@ -81,6 +92,11 @@ final class ApiResponse
             header($name . ': ' . $value);
         }
         if ($this->status === 204) {
+            return;
+        }
+        if ($this->binario) {
+            echo is_string($this->data) ? $this->data : '';
+
             return;
         }
 

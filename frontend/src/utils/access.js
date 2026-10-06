@@ -30,3 +30,17 @@ export function canManageTipos(user) {
 export function canManageNeumaticos(user) {
   return canOperateCliente(user);
 }
+
+export function canInspect(user) {
+  return hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS', 'TECNICO_INSPECCION');
+}
+
+export function canEditInspeccion(user, inspeccion) {
+  if (!inspeccion || inspeccion.estado !== 'BORRADOR') {
+    return false;
+  }
+  if (hasRole(user, 'ADMIN_GENERAL', 'GESTOR_NEUMATICOS')) {
+    return true;
+  }
+  return hasRole(user, 'TECNICO_INSPECCION') && Number(inspeccion.tecnico?.id) === Number(user?.id);
+}

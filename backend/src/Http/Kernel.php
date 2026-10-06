@@ -12,6 +12,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\EstadoNeumaticoController;
+use App\Controllers\InspeccionController;
 use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
@@ -32,6 +33,7 @@ use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
 use App\Repositories\ConfiguracionUnidadRepository;
 use App\Repositories\EstadoNeumaticoRepository;
+use App\Repositories\InspeccionRepository;
 use App\Repositories\MarcaNeumaticoRepository;
 use App\Repositories\MedidaNeumaticoRepository;
 use App\Repositories\ModeloNeumaticoRepository;
@@ -51,6 +53,7 @@ use App\Services\ClienteResponsableService;
 use App\Services\ClienteService;
 use App\Services\ConfiguracionUnidadService;
 use App\Services\EstadoNeumaticoService;
+use App\Services\InspeccionService;
 use App\Services\MarcaNeumaticoService;
 use App\Services\MedidaNeumaticoService;
 use App\Services\ModeloNeumaticoService;
@@ -59,12 +62,14 @@ use App\Services\OperacionNeumaticoService;
 use App\Services\OrganizacionService;
 use App\Services\TipoUnidadService;
 use App\Services\UnidadService;
+use App\Support\ArchivoAlmacen;
 use App\Support\Jwt;
 use App\Support\Transaction;
 use App\Validators\ClienteValidator;
 use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
 use App\Validators\ConfiguracionUnidadValidator;
+use App\Validators\InspeccionValidator;
 use App\Validators\MarcaNeumaticoValidator;
 use App\Validators\MedidaNeumaticoValidator;
 use App\Validators\ModeloNeumaticoValidator;
@@ -177,6 +182,15 @@ final class Kernel
             new NeumaticoValidator(),
             $transaction,
         );
+        $inspeccionService = new InspeccionService(
+            new InspeccionRepository($pdo),
+            $auditoria,
+            $authorization,
+            new InspeccionValidator(),
+            $transaction,
+            new ArchivoAlmacen($basePath . DIRECTORY_SEPARATOR . 'storage'),
+            $config->int('ARCHIVO_MAX_BYTES', 5242880),
+        );
         $operacionService = new OperacionNeumaticoService(
             new OperacionNeumaticoRepository($pdo),
             $auditoria,
@@ -202,6 +216,7 @@ final class Kernel
             new EstadoNeumaticoController($estadoService),
             new NeumaticoController($neumaticoService),
             new OperacionNeumaticoController($operacionService),
+            new InspeccionController($inspeccionService),
         );
 
         return new self(

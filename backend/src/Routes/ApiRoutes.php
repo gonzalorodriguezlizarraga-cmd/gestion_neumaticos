@@ -10,6 +10,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ClienteResponsableController;
 use App\Controllers\ConfiguracionUnidadController;
 use App\Controllers\EstadoNeumaticoController;
+use App\Controllers\InspeccionController;
 use App\Controllers\MarcaNeumaticoController;
 use App\Controllers\MedidaNeumaticoController;
 use App\Controllers\ModeloNeumaticoController;
@@ -42,6 +43,7 @@ final class ApiRoutes
         EstadoNeumaticoController $estados,
         NeumaticoController $neumaticos,
         OperacionNeumaticoController $operaciones,
+        InspeccionController $inspecciones,
     ): void {
         $router->post('/api/v1/auth/login', static fn (Request $request): ApiResponse => $auth->login($request));
         $router->get('/api/v1/auth/me', static fn (Request $request): ApiResponse => $auth->me($request), true);
@@ -49,6 +51,7 @@ final class ApiRoutes
 
         $lectura = ClientePolicy::LECTURA;
         $operacion = ClientePolicy::OPERACION;
+        $inspeccion = ClientePolicy::INSPECCION;
         $admin = ['ADMIN_GENERAL'];
 
         $router->get('/api/v1/clientes', static fn (Request $request): ApiResponse => $clientes->index($request), true, $lectura);
@@ -78,6 +81,7 @@ final class ApiRoutes
 
         $router->get('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->index($request), true, $lectura);
         $router->post('/api/v1/unidades', static fn (Request $request): ApiResponse => $unidades->store($request), true, $operacion);
+        $router->get('/api/v1/unidades/{id}/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->deUnidad($request), true, $lectura);
         $router->get('/api/v1/unidades/{id}/montajes-activos', static fn (Request $request): ApiResponse => $operaciones->montajesActivos($request), true, $lectura);
         $router->get('/api/v1/unidades/{id}/movimientos', static fn (Request $request): ApiResponse => $operaciones->movimientosUnidad($request), true, $lectura);
         $router->get('/api/v1/unidades/{id}', static fn (Request $request): ApiResponse => $unidades->show($request), true, $lectura);
@@ -113,7 +117,24 @@ final class ApiRoutes
         $router->post('/api/v1/transferencias', static fn (Request $request): ApiResponse => $operaciones->transferir($request), true, $operacion);
         $router->get('/api/v1/movimientos-neumatico', static fn (Request $request): ApiResponse => $operaciones->movimientos($request), true, $lectura);
 
+        $router->get('/api/v1/tipos-dano', static fn (Request $request): ApiResponse => $inspecciones->tiposDano($request), true, $lectura);
+        $router->get('/api/v1/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->index($request), true, $lectura);
+        $router->post('/api/v1/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->store($request), true, $inspeccion);
+        $router->post('/api/v1/inspecciones/{id}/finalizar', static fn (Request $request): ApiResponse => $inspecciones->finalizar($request), true, $inspeccion);
+        $router->post('/api/v1/inspecciones/{id}/detalles/{detalleId}/archivos', static fn (Request $request): ApiResponse => $inspecciones->storeArchivoDetalle($request), true, $inspeccion);
+        $router->post('/api/v1/inspecciones/{id}/detalles/{detalleId}/danos', static fn (Request $request): ApiResponse => $inspecciones->storeDano($request), true, $inspeccion);
+        $router->put('/api/v1/inspecciones/{id}/detalles/{detalleId}/danos/{tipoId}', static fn (Request $request): ApiResponse => $inspecciones->updateDano($request), true, $inspeccion);
+        $router->delete('/api/v1/inspecciones/{id}/detalles/{detalleId}/danos/{tipoId}', static fn (Request $request): ApiResponse => $inspecciones->destroyDano($request), true, $inspeccion);
+        $router->post('/api/v1/inspecciones/{id}/detalles', static fn (Request $request): ApiResponse => $inspecciones->storeDetalle($request), true, $inspeccion);
+        $router->put('/api/v1/inspecciones/{id}/detalles/{detalleId}', static fn (Request $request): ApiResponse => $inspecciones->updateDetalle($request), true, $inspeccion);
+        $router->post('/api/v1/inspecciones/{id}/archivos', static fn (Request $request): ApiResponse => $inspecciones->storeArchivo($request), true, $inspeccion);
+        $router->get('/api/v1/inspecciones/{id}', static fn (Request $request): ApiResponse => $inspecciones->show($request), true, $lectura);
+        $router->put('/api/v1/inspecciones/{id}', static fn (Request $request): ApiResponse => $inspecciones->update($request), true, $inspeccion);
+        $router->get('/api/v1/archivos/{id}/download', static fn (Request $request): ApiResponse => $inspecciones->download($request), true, $lectura);
+        $router->delete('/api/v1/archivos/{id}', static fn (Request $request): ApiResponse => $inspecciones->destroyArchivo($request), true, $inspeccion);
+
         $router->get('/api/v1/neumaticos/{id}/historial-estados', static fn (Request $request): ApiResponse => $neumaticos->historial($request), true, $lectura);
+        $router->get('/api/v1/neumaticos/{id}/inspecciones', static fn (Request $request): ApiResponse => $inspecciones->deNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/montajes', static fn (Request $request): ApiResponse => $operaciones->montajesNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/movimientos', static fn (Request $request): ApiResponse => $operaciones->movimientosNeumatico($request), true, $lectura);
         $router->get('/api/v1/neumaticos/{id}/vidas', static fn (Request $request): ApiResponse => $neumaticos->vidas($request), true, $lectura);

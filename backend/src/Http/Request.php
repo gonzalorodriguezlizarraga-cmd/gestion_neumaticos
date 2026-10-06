@@ -17,6 +17,7 @@ final class Request
     /**
      * @param array<string, mixed> $query
      * @param array<string, string> $headers
+     * @param array<string, array{contents:string,name:string}> $files
      */
     private function __construct(
         private readonly string $method,
@@ -26,6 +27,7 @@ final class Request
         private readonly ?string $rawBody,
         private readonly ?string $ip = null,
         private readonly ?string $userAgent = null,
+        private readonly array $files = [],
     ) {
     }
 
@@ -71,11 +73,38 @@ final class Request
             $raw === false ? null : $raw,
             $ip,
             $agent,
+            self::archivoSubido(),
         );
     }
 
-    /** @param array<string, string> $headers */
-    public static function fake(string $method, string $path, array $headers = [], ?string $rawBody = null): self
+    /** @return array<string, array{contents:string,name:string}> */
+    private static function archivoSubido(): array
+    {
+        if (!isset($_FILES['archivo']) || !is_array($_FILES['archivo'])) {
+            return [];
+        }
+        $error = (int) ($_FILES['archivo']['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_NO_FILE) {
+            return [];
+        }
+        $temporal = (string) ($_FILES['archivo']['tmp_name'] ?? '');
+        $contenido = $error === UPLOAD_ERR_OK && is_uploaded_file($temporal)
+            ? (string) file_get_contents($temporal)
+            : '';
+
+        return [
+            'archivo' => [
+                'contents' => $contenido,
+                'name' => (string) ($_FILES['archivo']['name'] ?? 'archivo'),
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, string> $headers
+     * @param array<string, array{contents:string,name:string}> $files
+     */
+    public static function fake(string $method, string $path, array $headers = [], ?string $rawBody = null, array $files = []): self
     {
         $parts = parse_url($path);
         $pathOnly = $parts['path'] ?? '/';
@@ -100,7 +129,14 @@ final class Request
             $rawBody,
             $ip,
             $agent,
+            $files,
         );
+    }
+
+    /** @return array{contents:string,name:string}|null */
+    public function archivo(string $campo = 'archivo'): ?array
+    {
+        return $this->files[$campo] ?? null;
     }
 
     public function method(): string

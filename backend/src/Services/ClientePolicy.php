@@ -25,6 +25,13 @@ final class ClientePolicy
         'GESTOR_NEUMATICOS',
     ];
 
+    /** @var list<string> */
+    public const INSPECCION = [
+        'ADMIN_GENERAL',
+        'GESTOR_NEUMATICOS',
+        'TECNICO_INSPECCION',
+    ];
+
     public function __construct(private readonly AuthorizationService $authorization)
     {
     }

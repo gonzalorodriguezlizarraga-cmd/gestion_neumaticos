@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { deleteNeumatico, getNeumatico, listHistorialEstados, listVidas } from '../../api/neumaticos';
+import { listInspeccionesNeumatico } from '../../api/inspecciones';
 import { listMontajesNeumatico, listMovimientosNeumatico } from '../../api/operaciones';
+import { InspeccionesTabla } from '../inspecciones/InspeccionesTabla';
 import { EstadoBadge } from '../../components/EstadoBadge';
 import { useAuth } from '../../auth/AuthContext';
 import { canManageNeumaticos } from '../../utils/access';
@@ -19,6 +21,7 @@ export function NeumaticoDetallePage() {
   const [vidas, setVidas] = useState([]);
   const [montajes, setMontajes] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
+  const [inspecciones, setInspecciones] = useState([]);
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState('resumen');
   const [error, setError] = useState('');
@@ -36,17 +39,19 @@ export function NeumaticoDetallePage() {
       }
       setNeumatico(result.payload.data);
       setError('');
-      const [hist, life, mounts, moves] = await Promise.all([
+      const [hist, life, mounts, moves, inspections] = await Promise.all([
         listHistorialEstados(id),
         listVidas(id),
         listMontajesNeumatico(id),
         listMovimientosNeumatico(id),
+        listInspeccionesNeumatico(id, { limit: 20, sort: 'fecha_inspeccion', order: 'desc' }),
       ]);
       if (cancelled) return;
       setHistorial(hist.ok ? hist.payload?.data ?? [] : []);
       setVidas(life.ok ? life.payload?.data ?? [] : []);
       setMontajes(mounts.ok ? mounts.payload?.data ?? [] : []);
       setMovimientos(moves.ok ? moves.payload?.data ?? [] : []);
+      setInspecciones(inspections.ok ? inspections.payload?.data ?? [] : []);
     }
     load();
     return () => { cancelled = true; };
@@ -92,6 +97,7 @@ export function NeumaticoDetallePage() {
         <button type="button" className={tab === 'vidas' ? 'tab active' : 'tab'} onClick={() => setTab('vidas')}>Vidas</button>
         <button type="button" className={tab === 'montajes' ? 'tab active' : 'tab'} onClick={() => setTab('montajes')}>Montajes</button>
         <button type="button" className={tab === 'movimientos' ? 'tab active' : 'tab'} onClick={() => setTab('movimientos')}>Movimientos</button>
+        <button type="button" className={tab === 'inspecciones' ? 'tab active' : 'tab'} onClick={() => setTab('inspecciones')}>Inspecciones</button>
       </div>
       {operate && disponible ? <MontajeNeumatico neumatico={neumatico} onDone={() => setVersion((current) => current + 1)} /> : null}
       {tab === 'resumen' ? (
@@ -163,6 +169,7 @@ export function NeumaticoDetallePage() {
         </table>
       ) : null}
       {tab === 'movimientos' ? <MovimientosTabla rows={movimientos} conNeumatico={false} /> : null}
+      {tab === 'inspecciones' ? <InspeccionesTabla rows={inspecciones} vacio="Este neumático todavía no tiene inspecciones." /> : null}
     </section>
   );
 }

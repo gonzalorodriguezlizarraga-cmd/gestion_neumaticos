@@ -10,6 +10,12 @@ const LABELS = {
   EN_MANTENIMIENTO: 'En mantenimiento',
   EN_REENCAUCHE: 'En reencauche',
   DESCARTADO: 'Descartado',
+  BORRADOR: 'Borrador',
+  FINALIZADA: 'Finalizada',
+  ANULADA: 'Anulada',
+  NORMAL: 'Normal',
+  ATENCION: 'Atención',
+  CRITICO: 'Crítico',
 };
 
 export function EstadoBadge({ estado }) {

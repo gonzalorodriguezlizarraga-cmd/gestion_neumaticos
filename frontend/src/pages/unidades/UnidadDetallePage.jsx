@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { errorMessage } from '../../api/clientes';
 import { changeUnidadEstado, deleteUnidad, getUnidad } from '../../api/unidades';
+import { listInspeccionesUnidad } from '../../api/inspecciones';
+import { InspeccionesTabla } from '../inspecciones/InspeccionesTabla';
 import { NeumaticosMontados } from './NeumaticosMontados';
 import { EstadoBadge } from '../../components/EstadoBadge';
 import { useAuth } from '../../auth/AuthContext';
@@ -15,6 +17,7 @@ export function UnidadDetallePage() {
   const [estado, setEstado] = useState('OPERATIVA');
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [inspecciones, setInspecciones] = useState([]);
   const admin = isAdmin(user);
   const operate = canManageUnidades(user);
 
@@ -28,6 +31,8 @@ export function UnidadDetallePage() {
     setUnidad(result.payload.data);
     setEstado(result.payload.data.estado);
     setError('');
+    const recientes = await listInspeccionesUnidad(id, { limit: 5, sort: 'fecha_inspeccion', order: 'desc' });
+    setInspecciones(recientes.ok ? recientes.payload?.data ?? [] : []);
   }
 
   useEffect(() => { load(); }, [id]);
@@ -96,6 +101,13 @@ export function UnidadDetallePage() {
         ) : null}
       </article>
       <NeumaticosMontados unidad={unidad} operate={operate} onChanged={load} />
+      <article className="panel">
+        <div className="row-between">
+          <h2>Inspecciones recientes</h2>
+          <Link to="/inspecciones">Ver listado</Link>
+        </div>
+        <InspeccionesTabla rows={inspecciones} mostrarUnidad={false} vacio="Esta unidad todavía no tiene inspecciones." />
+      </article>
     </section>
   );
 }
