@@ -22,6 +22,24 @@ final class Router
     }
 
     /** @param list<string> $roles */
+    public function put(string $path, callable $handler, bool $auth = false, array $roles = [], ?string $clientParam = null): void
+    {
+        $this->add('PUT', $path, $handler, $auth, $roles, $clientParam);
+    }
+
+    /** @param list<string> $roles */
+    public function patch(string $path, callable $handler, bool $auth = false, array $roles = [], ?string $clientParam = null): void
+    {
+        $this->add('PATCH', $path, $handler, $auth, $roles, $clientParam);
+    }
+
+    /** @param list<string> $roles */
+    public function delete(string $path, callable $handler, bool $auth = false, array $roles = [], ?string $clientParam = null): void
+    {
+        $this->add('DELETE', $path, $handler, $auth, $roles, $clientParam);
+    }
+
+    /** @param list<string> $roles */
     public function add(
         string $method,
         string $path,

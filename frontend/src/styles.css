@@ -70,7 +70,7 @@ form { display: grid; gap: 0.35rem; margin-top: 1.2rem; }
 
 label { font-size: 0.92rem; font-weight: 650; }
 
-input {
+input, select, textarea {
   width: 100%;
   margin-bottom: 0.45rem;
   padding: 0.75rem 0.8rem;
@@ -81,7 +81,7 @@ input {
   font: inherit;
 }
 
-input:focus {
+input:focus, select:focus, textarea:focus {
   outline: 3px solid rgba(180, 83, 42, 0.2);
   border-color: var(--accent);
 }
@@ -129,6 +129,16 @@ input:focus {
   color: white;
 }
 
+.main-nav { display: flex; gap: 0.4rem; }
+.main-nav a {
+  color: #d7deea;
+  text-decoration: none;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.main-nav a.active { background: rgba(255, 255, 255, 0.12); color: white; }
+
 .brand, .topbar-user { display: flex; align-items: center; gap: 0.8rem; }
 .brand small, .topbar-user small { display: block; color: #c9d3e0; font-size: 0.82rem; }
 
@@ -170,9 +180,72 @@ input:focus {
 
 .client-list span, .scope { color: var(--muted); }
 
+.row-between, .actions, .pager, .filters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row-between { justify-content: space-between; align-items: flex-start; }
+.filters { align-items: end; margin: 0 0 1rem; }
+.filters label, .stack-form label, .field { display: grid; gap: 0.25rem; min-width: 10rem; }
+.stack-form { max-width: 42rem; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.form-card { max-width: 46rem; }
+.check { display: flex !important; align-items: center; gap: 0.5rem; }
+.check input { width: auto; margin: 0; }
+
+.button-quiet {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+}
+
+.table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { text-align: left; padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.data-table th { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.badge::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
+.badge-activo { color: #1f6b45; background: #e7f6ee; }
+.badge-potencial { color: #8a5a12; background: #fff4df; }
+.badge-inactivo { color: #5d6b7c; background: #eef1f4; }
+
+.tabs { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 1rem 0; }
+.tab { border: 1px solid var(--line); background: white; border-radius: 999px; padding: 0.45rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; }
+.tab.active { background: var(--deep); color: white; border-color: var(--deep); }
+
+.record-list { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.6rem; }
+.record-list li { display: flex; justify-content: space-between; gap: 0.8rem; padding: 0.8rem; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.record-list div { display: grid; gap: 0.15rem; }
+.record-list span { color: var(--muted); }
+
+.summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.summary-grid p, .estado-form { display: grid; gap: 0.2rem; margin: 0; }
+.summary-grid span { color: var(--muted); }
+.confirm-box { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.8rem; border: 1px solid #efd3c6; border-radius: 12px; background: #fff7f2; }
+.pager { justify-content: space-between; margin-top: 0.8rem; color: var(--muted); }
+
 @media (max-width: 760px) {
   .topbar, .topbar-user, .brand { align-items: flex-start; }
   .topbar { flex-direction: column; }
-  .grid { grid-template-columns: 1fr; }
-  .topbar-user { width: 100%; justify-content: space-between; }
+  .grid, .split, .summary-grid { grid-template-columns: 1fr; }
+  .topbar-user, .main-nav { width: 100%; }
+  .record-list li { flex-direction: column; }
+  .data-table thead { display: none; }
+  .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; width: 100%; }
+  .data-table tr { border-bottom: 1px solid var(--line); padding: 0.4rem 0; }
+  .data-table td { border: 0; padding: 0.25rem 0.85rem; }
+  .data-table td::before { content: attr(data-label); display: block; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 }

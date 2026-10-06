@@ -14,7 +14,7 @@ export function DashboardPage() {
         <h1>Hola, {user?.nombres}</h1>
         <p className="lede">
           Este panel confirma la identidad, los roles vigentes y el alcance de clientes.
-          Los módulos operativos quedan para los bloques siguientes.
+          La administración de clientes está en su propio módulo.
         </p>
       </div>
 

@@ -24,6 +24,8 @@ final class Request
         private readonly array $query,
         private readonly array $headers,
         private readonly ?string $rawBody,
+        private readonly ?string $ip = null,
+        private readonly ?string $userAgent = null,
     ) {
     }
 
@@ -57,6 +59,9 @@ final class Request
         }
 
         $raw = file_get_contents('php://input');
+        $remote = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ip = is_string($remote) && $remote !== '' ? substr($remote, 0, 64) : null;
+        $agent = isset($headers['user-agent']) ? substr($headers['user-agent'], 0, 500) : null;
 
         return new self(
             strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')),
@@ -64,6 +69,8 @@ final class Request
             $_GET,
             $headers,
             $raw === false ? null : $raw,
+            $ip,
+            $agent,
         );
     }
 
@@ -82,7 +89,18 @@ final class Request
             $normalized[strtolower($name)] = $value;
         }
 
-        return new self(strtoupper($method), $pathOnly === '' ? '/' : $pathOnly, $query, $normalized, $rawBody);
+        $agent = isset($normalized['user-agent']) ? substr($normalized['user-agent'], 0, 500) : null;
+        $ip = isset($normalized['x-client-ip']) ? substr($normalized['x-client-ip'], 0, 64) : null;
+
+        return new self(
+            strtoupper($method),
+            $pathOnly === '' ? '/' : $pathOnly,
+            $query,
+            $normalized,
+            $rawBody,
+            $ip,
+            $agent,
+        );
     }
 
     public function method(): string
@@ -100,6 +118,22 @@ final class Request
         $key = strtolower($name);
 
         return $this->headers[$key] ?? null;
+    }
+
+    /** @return array<string, mixed> */
+    public function queryParams(): array
+    {
+        return $this->query;
+    }
+
+    public function ip(): ?string
+    {
+        return $this->ip;
+    }
+
+    public function userAgent(): ?string
+    {
+        return $this->userAgent;
     }
 
     /** @return array<string, mixed> */

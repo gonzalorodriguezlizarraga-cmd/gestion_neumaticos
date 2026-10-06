@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 export function AppLayout() {
@@ -15,6 +15,10 @@ export function AppLayout() {
             <small>Gestión de llantas</small>
           </div>
         </div>
+        <nav className="main-nav" aria-label="Principal">
+          <NavLink to="/dashboard">Inicio</NavLink>
+          <NavLink to="/clientes">Clientes</NavLink>
+        </nav>
         <div className="topbar-user">
           <div>
             <strong>{fullName || 'Usuario'}</strong>

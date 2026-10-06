@@ -7,19 +7,38 @@ namespace App\Http;
 use App\Config\Config;
 use App\Config\Database;
 use App\Controllers\AuthController;
+use App\Controllers\ClienteContactoController;
+use App\Controllers\ClienteController;
+use App\Controllers\ClienteResponsableController;
+use App\Controllers\OrganizacionController;
 use App\Exceptions\NotFoundException;
 use App\Middleware\AuthenticationMiddleware;
 use App\Middleware\AuthorizationMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Middleware\ErrorHandler;
+use App\Repositories\AuditoriaRepository;
+use App\Repositories\ClienteContactoRepository;
+use App\Repositories\ClienteRepository;
+use App\Repositories\ClienteResponsableRepository;
 use App\Repositories\ClienteScopeRepository;
+use App\Repositories\OrganizacionRepository;
 use App\Repositories\RolRepository;
 use App\Repositories\UsuarioRepository;
 use App\Routes\ApiRoutes;
 use App\Services\AuthService;
 use App\Services\AuthorizationService;
+use App\Services\ClienteContactoService;
+use App\Services\ClientePolicy;
+use App\Services\ClienteResponsableService;
+use App\Services\ClienteService;
+use App\Services\OrganizacionService;
 use App\Support\Jwt;
+use App\Support\Transaction;
+use App\Validators\ClienteValidator;
+use App\Validators\ContactoValidator;
 use App\Validators\LoginValidator;
+use App\Validators\OrganizacionValidator;
+use App\Validators\ResponsableValidator;
 use Throwable;
 
 final class Kernel
@@ -44,9 +63,63 @@ final class Kernel
         $jwt = new Jwt($config->get('JWT_SECRET'), $config->int('JWT_TTL', 3600));
         $authorization = new AuthorizationService($roles, $clientes);
         $auth = new AuthService($usuarios, $roles, $clientes, $authorization, $jwt);
-        $controller = new AuthController($auth, new LoginValidator());
+        $policy = new ClientePolicy($authorization);
+        $transaction = new Transaction($pdo);
+        $auditoria = new AuditoriaRepository($pdo);
+        $clienteRepository = new ClienteRepository($pdo);
+        $clienteService = new ClienteService($clienteRepository, $auditoria, $policy, new ClienteValidator(), $transaction);
+        $contactoService = new ClienteContactoService(
+            $clienteService,
+            new ClienteContactoRepository($pdo),
+            $auditoria,
+            $policy,
+            new ContactoValidator(),
+            $transaction,
+        );
+        $responsableService = new ClienteResponsableService(
+            $clienteService,
+            $clienteRepository,
+            new ClienteResponsableRepository($pdo),
+            $usuarios,
+            $auditoria,
+            $policy,
+            $authorization,
+            new ResponsableValidator(),
+            $transaction,
+        );
+        $organizacionValidator = new OrganizacionValidator();
+        $sedes = new OrganizacionService(
+            $clienteService,
+            OrganizacionRepository::sedes($pdo),
+            $auditoria,
+            $policy,
+            $organizacionValidator,
+            $transaction,
+            'sedes',
+            'SEDE',
+            false,
+        );
+        $flotas = new OrganizacionService(
+            $clienteService,
+            OrganizacionRepository::flotas($pdo),
+            $auditoria,
+            $policy,
+            $organizacionValidator,
+            $transaction,
+            'flotas',
+            'FLOTA',
+            true,
+        );
         $router = new Router();
-        ApiRoutes::register($router, $controller);
+        ApiRoutes::register(
+            $router,
+            new AuthController($auth, new LoginValidator()),
+            new ClienteController($clienteService),
+            new ClienteContactoController($contactoService),
+            new ClienteResponsableController($responsableService),
+            new OrganizacionController($sedes),
+            new OrganizacionController($flotas),
+        );
 
         return new self(
             $router,
